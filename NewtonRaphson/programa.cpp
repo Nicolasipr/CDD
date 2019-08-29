@@ -13,7 +13,7 @@ using namespace std;
 
 // GLOBAL VARIABLES
 string coefNumber = "",
-       expNumber;
+       expNumber = "0";
 vector< pair< ld, ld > > polynomium(N, pair<ld, ld>(0,0)); // first = coef and second = exp
 int pIndex = 0;
 
@@ -55,7 +55,7 @@ void stringToLongDouble( int argc, char** argv){
               exponent = false; 
               polynomium[pIndex].second = stold(expNumber); 
               pIndex++;
-              expNumber = "";
+              expNumber = "0";
             }
         }
         else{
