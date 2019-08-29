@@ -90,8 +90,11 @@ void stringToLongDouble( int argc, char** argv){
       }
       
       exponent = false;
+      if(pIndex >= 1){
       polynomium[pIndex].first = stold(coefNumber); // last number of "input"
       polynomium[pIndex].second = stold(expNumber); // last number of "input"
+
+      }
       j = 0;
     }
     
