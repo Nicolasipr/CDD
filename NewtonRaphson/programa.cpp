@@ -31,16 +31,17 @@ void stringToLongDouble( int argc, char** argv){
 
     bool exponent = false;
     int j = 0;
-
+    if(!argv[1][0]){
+      coefNumber = "0";
+      expNumber = "0";
+    }
     for(int i = 1; i < argc; ++i){ // if inputs more " " polynomial strings
 
       while(argv[i][j]){ // travels through " " input
 
         if(argv[i][j] == 'x' || argv[i][j] == 'X'){ // checks for coef and exp changes
           exponent = true;
-          // cout << "String Coef Number: " << coefNumber << endl;
-          // cout << "string Exp Number: " << expNumber << endl;
-          // num = stold(coefNumber);
+
           polynomium[pIndex].first = stold(coefNumber); // adds coef to pair
           coefNumber = ""; // reset string
         }
@@ -49,12 +50,12 @@ void stringToLongDouble( int argc, char** argv){
         if(exponent){ // while exponent == true
             if(argv[i][j] != '*' && argv[i][j] != 'x' && argv[i][j] != 'X'){
               expNumber += argv[i][j];
-              // polynomium[pIndex].second = polynomium[pIndex].second; // add exponent to pair
             }
             if(argv[i][j] == '-' || argv[i][j] == '+'){
               exponent = false; 
               polynomium[pIndex].second = stold(expNumber); 
               pIndex++;
+              coefNumber += argv[i][j];
               expNumber = "0";
             }
         }
@@ -68,7 +69,7 @@ void stringToLongDouble( int argc, char** argv){
             exponent = false;
           }
 
-
+          if(argv[i][j] != ' ')
             coefNumber += argv[i][j];
   
         }
@@ -76,6 +77,7 @@ void stringToLongDouble( int argc, char** argv){
       }
       
       exponent = false;
+      polynomium[pIndex].first = stold(coefNumber);
       polynomium[pIndex].second = stold(expNumber);
       j = 0;
     }
