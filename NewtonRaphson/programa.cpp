@@ -1,3 +1,7 @@
+          // cout << "String Coef Number: " << coefNumber << endl;
+          // cout << "string Exp Number: " << expNumber << endl;
+          // cout << "Current ARGV: " << argv[i][j] << endl;
+          // cout << "Exponent state: " << exponent << endl << endl;
 #include <bits/stdc++.h>
 
 // creates a ld shorcut for long double
@@ -31,19 +35,28 @@ void stringToLongDouble( int argc, char** argv){
 
     bool exponent = false;
     int j = 0;
-    if(!argv[1][0]){
+
+    if(!argv[1][0]){ // null case
       coefNumber = "0";
       expNumber = "0";
     }
+
     for(int i = 1; i < argc; ++i){ // if inputs more " " polynomial strings
 
       while(argv[i][j]){ // travels through " " input
 
+          // cout << "String Coef Number: " << coefNumber << endl;
+          // cout << "string Exp Number: " << expNumber << endl;
+          // cout << "Current ARGV: " << argv[i][j] << endl;
+          // cout << "Exponent state: " << exponent << endl << endl;
+
+
         if(argv[i][j] == 'x' || argv[i][j] == 'X'){ // checks for coef and exp changes
           exponent = true;
-
           polynomium[pIndex].first = stold(coefNumber); // adds coef to pair
           coefNumber = ""; // reset string
+          if(argv[i][j + 1] != '*')
+            expNumber = "1";
         }
               
 
@@ -69,7 +82,7 @@ void stringToLongDouble( int argc, char** argv){
             exponent = false;
           }
 
-          if(argv[i][j] != ' ')
+          if(argv[i][j] != ' ') // handles stold error with blank space
             coefNumber += argv[i][j];
   
         }
@@ -77,8 +90,8 @@ void stringToLongDouble( int argc, char** argv){
       }
       
       exponent = false;
-      polynomium[pIndex].first = stold(coefNumber);
-      polynomium[pIndex].second = stold(expNumber);
+      polynomium[pIndex].first = stold(coefNumber); // last number of "input"
+      polynomium[pIndex].second = stold(expNumber); // last number of "input"
       j = 0;
     }
     
@@ -99,7 +112,7 @@ void NewtonRaphson(){
 }
 
 int main(int argc, char** argv){
-
+  ios_base::sync_with_stdio(false);
   stringToLongDouble(argc, argv);
   polynomium.resize(pIndex + 1);
   for(int i = 0; i < polynomium.size(); i++){
