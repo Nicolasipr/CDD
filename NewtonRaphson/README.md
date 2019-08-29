@@ -29,6 +29,12 @@ We have divide the code in several functions to make it more easy to read and co
     ├── NewtonRaphson()                 # Uses all functions from above to calculate its roots
     └── ...
 
+It's meant to work under this command line input: 
+
+```
+$ ./programa "some polynomial input"
+```
+
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
