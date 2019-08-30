@@ -1,0 +1,4 @@
+[programa.cpp:98]: (style) The function 'NewtonRaphson' is never used.
+[programa.cpp:91]: (style) The function 'derivateCalc' is never used.
+[programa.cpp:94]: (style) The function 'functionCalc' is never used.
+[programa.cpp:88]: (style) The function 'powerCalc' is never used.
