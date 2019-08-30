@@ -1,5 +1,7 @@
-// correr con "g++ -std=c++11 programa.cpp -o programa && ./programa"
- // cout << "String Coef Number: " << coefNumber << endl;
+
+          // correr con "g++ -std=c++11 programa.cpp -o programa && ./programa"
+
+          // cout << "String Coef Number: " << coefNumber << endl;
           // cout << "string Exp Number: " << expNumber << endl;
           // cout << "Current ARGV: " << argv[i][j] << endl;
           // cout << "Exponent state: " << exponent << endl << endl;
