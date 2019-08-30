@@ -15,10 +15,11 @@ using namespace std;
 // GLOBAL VARIABLES
 string coefNumber = "0",
        expNumber = "0";
-vector< pair< ld, ld > > polynomium(N, pair<ld, ld>(0,0)); // first = coef and second = exp
-vector< pair< ld, ld > > derivate(N, pair<ld, ld>(0,0)); // first = coef and second = exp
+vector< pair< ld, ld > > polynomium(N, pair<ld, ld>(0,0)), // first = coef and second = exp
+                         derivate(N, pair<ld, ld>(0,0)); // first = coef and second = exp
+
 vector< ld > powers(N, 0); // first = coef and second = exp
-unordered_map<ld, ld> roots; // save roots of p(x)
+unordered_map<ld, ld> roots; // save roots of p(x) in order to check gif exists
 
 ld fx = 0,  // p(x)
    dx = 0;  // p(x)' 
@@ -26,7 +27,7 @@ ld fx = 0,  // p(x)
 int pIndex = 0;
 
 /*
-Functions:
+                            FUNCTION SEGMENT:
 sortBySec
 String to Long Double
 Power Calculator
@@ -40,9 +41,6 @@ bool sortBySec(const pair<int,int> &a,
 } 
 
 void stringToLongDouble( int argc, char** argv){
-  cout << endl << endl; 
-
-
 
     if(!argv[1][0] || argc == 0){ // null case
       coefNumber = "0";
@@ -55,16 +53,9 @@ void stringToLongDouble( int argc, char** argv){
 
         while(argv[i][j]){ // travels through " " input
 
-            // cout << "String Coef Number: " << coefNumber << endl;
-            // cout << "string Exp Number: " << expNumber << endl;
-            // cout << "Current ARGV: " << argv[i][j] << endl;
-            // cout << "Exponent state: " << exponent << endl << endl;
-
-
           if(argv[i][j] == 'x' || argv[i][j] == 'X'){ // checks for coef and exp changes
 
-            exponent = true;
-           
+            exponent = true;   
 
             if(coefNumber == "" || coefNumber == " " || coefNumber == "0"){
               polynomium[pIndex].first = 1;
@@ -125,7 +116,6 @@ void stringToLongDouble( int argc, char** argv){
 
 void derivating(){  // It derivates plynomium p(x)
 
-
 	for(int i=0; i <= pIndex; i++){ 
 
       if(polynomium[i].second >= 1){
@@ -139,14 +129,6 @@ void derivating(){  // It derivates plynomium p(x)
 		
 	  }
 	}
-	cout<<"la derivada es ";
-		for(int i=0; i < pIndex;i++){
-		  cout<< derivate[i].first <<"x**" << derivate[i].second;
-
-	    if( i + 1 < pIndex)
-        cout << " + ";
-      }
-	  cout << endl << endl;
 }
 
 void powerCalc(ld xValue){
@@ -176,15 +158,14 @@ void NewtonRaphson(ld x_zero, int &sol){
   
   powerCalc(x_zero);
   fxCalc();
-  x_one = x_zero - fx/dx;
 
+  x_one = x_zero - fx/dx;
   h = x_one - x_zero;
 
   if(abs(dx) > MAX_ERROR){ //avoiding zero division
     int i = 0;
+
     while( abs(h) > MAX_ERROR && i < MAX_ITERATOR){
-        // cout << "p("<< x_zero << ") = " << fx << endl;
-        // cout << "p("<< x_zero << ")' = " << dx << endl;
 
         x_one = x_zero - fx/dx;
         powerCalc(x_one); // precomputes all powers again
@@ -195,7 +176,7 @@ void NewtonRaphson(ld x_zero, int &sol){
         if(dx < MAX_ERROR)
           break;
     }
-    // cout<< "FX : " << fx << endl;
+
     if(fx == 0.0 || abs(fx) < 10e-15){
       if(!roots[x_zero]){
         roots[x_zero] = x_zero;
@@ -208,9 +189,10 @@ void NewtonRaphson(ld x_zero, int &sol){
     // cout << "dx is near to zero, cannot divide it..." << endl;
   }
 
-  cout << "X root value is :" << x_zero << endl;
+  cout << "X root value is : " << x_zero << endl;
 
 }
+//  MAIN PROGRAM SEGMENNT
 
 int main(int argc, char** argv){
   
@@ -228,18 +210,6 @@ int main(int argc, char** argv){
 
     derivating();
 
-    for(int i = 0; i < polynomium.size(); i++){
-
-      cout << " Polinomio "<< i + 1 << " :" << endl
-          << "\tcoef : " << polynomium[i].first << endl
-          << "\texp  : " << polynomium[i].second << endl;
-    }
-        for(int i = 0; i < polynomium.size(); i++){
-
-      cout << " Derivada "<< i + 1 << " :" << endl
-          << "\tcoef : " << derivate[i].first << endl
-          << "\texp  : " << derivate[i].second << endl;
-    }
     int sol = 0,
         i = 0;
 
