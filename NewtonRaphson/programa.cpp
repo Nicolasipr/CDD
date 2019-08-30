@@ -45,10 +45,10 @@ void stringToLongDouble( int argc, char** argv){
 
       while(argv[i][j]){ // travels through " " input
 
-          // cout << "String Coef Number: " << coefNumber << endl;
-          // cout << "string Exp Number: " << expNumber << endl;
-          // cout << "Current ARGV: " << argv[i][j] << endl;
-          // cout << "Exponent state: " << exponent << endl << endl;
+          cout << "String Coef Number: " << coefNumber << endl;
+          cout << "string Exp Number: " << expNumber << endl;
+          cout << "Current ARGV: " << argv[i][j] << endl;
+          cout << "Exponent state: " << exponent << endl << endl;
 
 
         if(argv[i][j] == 'x' || argv[i][j] == 'X'){ // checks for coef and exp changes
@@ -115,6 +115,7 @@ void NewtonRaphson(){
 }
 
 int main(int argc, char** argv){
+  
   ios_base::sync_with_stdio(false);
   stringToLongDouble(argc, argv);
   polynomium.resize(pIndex + 1);
