@@ -159,18 +159,18 @@ void powerCalc(ld xValue){
 }
 
 void fxCalc(){
-
+  fx = 0;
+  dx = 0;
   for(int i = 0; i < polynomium.size(); i++){
-    fx += polynomium[i].first * powers[polynomium[i].second];
-    dx += derivate[i].first * powers[derivate[i].second];
+    fx += polynomium[i].first * powers[polynomium[i].second]; //it computes polynomial p(x)
+    dx += derivate[i].first * powers[derivate[i].second];    // it computes derivative px/dx
   }
 
 }
 
 
-void NewtonRaphson(){
-  ld x_zero = 0.5,
-     x_one = 0,
+void NewtonRaphson(ld x_zero){
+  ld x_one = 0,
      h = 0;
   
   powerCalc(x_zero);
@@ -179,11 +179,11 @@ void NewtonRaphson(){
 
   h = x_one - x_zero;
 
-  if(dx > MAX_ERROR){ //avoiding zero division
+  if(abs(dx) > MAX_ERROR){ //avoiding zero division
     int i = 0;
     while( abs(h) > MAX_ERROR && i < MAX_ITERATOR){
-        cout << "p("<< x_zero << ") = " << fx << endl;
-        cout << "p("<< x_zero << ")' = " << dx << endl;
+        // cout << "p("<< x_zero << ") = " << fx << endl;
+        // cout << "p("<< x_zero << ")' = " << dx << endl;
 
         x_one = x_zero - fx/dx;
         powerCalc(x_one); // precomputes all powers again
@@ -208,32 +208,31 @@ int main(int argc, char** argv){
   ios_base::sync_with_stdio(false);
   cout.precision(20); 
 
-  stringToLongDouble(argc, argv);
+  if(argc > 1){
 
-  polynomium.resize(pIndex + 1); // it resizes vector to actual length 
-  derivate.resize(pIndex + 1);
+    stringToLongDouble(argc, argv);
 
-  sort(polynomium.begin(), polynomium.end(), sortBySec); // sorts polynomium by exponent desc
+    polynomium.resize(pIndex + 1); // it resizes vector to actual length 
+    derivate.resize(pIndex + 1);
 
-  derivating();
+    sort(polynomium.begin(), polynomium.end(), sortBySec); // sorts polynomium by exponent desc
 
-  ld x = 2;
-  // powerCalc(0.8); // precomputes all powers 
+    derivating();
 
-  // for(int i = 0; i < powers.size(); i++) //works 
-  //   cout << "Value of "<< x <<"^  " << i << " = "<< powers[i] << endl; // it shows all k-th powers of x
+    ld x = 2;
 
+    for(int i = 0; i < polynomium.size(); i++){
+      cout << " Polinomio "<< i + 1 << " :" << endl
+          << "\tcoef : " << polynomium[i].first << endl
+          << "\texp  : " << polynomium[i].second << endl;
+    }
+    for(int i = 0; i < 10; i++){
+      NewtonRaphson(i);
 
-  for(int i = 0; i < polynomium.size(); i++){
-    cout << " Polinomio "<< i + 1 << " :" << endl
-         << "\tcoef : " << polynomium[i].first << endl
-         << "\texp  : " << polynomium[i].second << endl;
+    }
   }
-  // fxCalc();
-  // dxFunCalc();
-  // cout << "p("<< x << ") = " << fx << endl;
-  // cout << "p("<< x << ")' = " << dx << endl;
-
-  NewtonRaphson();
+  else{
+    cout << "Please, write a polynomial input..."<< endl;
+  }
   return 0;
 }
