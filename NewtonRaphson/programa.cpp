@@ -23,6 +23,8 @@ string coefNumber = "",
        expNumber = "0";
 vector< pair< ld, ld > > polynomium(N, pair<ld, ld>(0,0)); // first = coef and second = exp
 vector< pair< ld, ld > > derivate(N, pair<ld, ld>(0,0)); // first = coef and second = exp
+vector< ld > powers(N, 0); // first = coef and second = exp
+
 
 int pIndex = 0;
 
@@ -140,9 +142,11 @@ void derivateCalc(){  // It derivates plynomium p(x)
 }
 
 void powerCalc(ld xValue){
+  powers.resize(polynomium[0].second + 1); // it resizes powers vector to maximun degree power
+  powers[0] = 1;
 
   for(int i = 0; i <= polynomium[0].second; i++){
-
+    powers[i + 1] = powers[i] * xValue; 
   }
 
 }
@@ -165,6 +169,13 @@ int main(int argc, char** argv){
 
   sort(polynomium.begin(), polynomium.end(), sortbysec);
   derivateCalc();
+  
+  ld x = 2;
+  powerCalc(x);
+  for(int i = 0; i < powers.size(); i++) //works 
+    cout << "Value of "<< x <<"^  " << i << " = "<< powers[i] << endl; // it shows all k-th powers of x
+
+
   for(int i = 0; i < polynomium.size(); i++){
     cout << " Polinomio "<< i + 1 << " :" << endl
          << "\tcoef : " << polynomium[i].first << endl
