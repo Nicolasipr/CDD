@@ -8,7 +8,7 @@ typedef long double ld;
 // define maximum and minimum values values to Newton Raphson iterarions
 #define N 1000000
 #define MAX_ERROR 10e-15 // if error is less than 10^15 stop
-#define MAX_ITERATOR 500  // I don't want to exceed a maximum of 20 itirations
+#define MAX_ITERATOR 50  // I don't want to exceed a maximum of 20 itirations
 
 using namespace std;
 
@@ -18,6 +18,7 @@ string coefNumber = "0",
 vector< pair< ld, ld > > polynomium(N, pair<ld, ld>(0,0)); // first = coef and second = exp
 vector< pair< ld, ld > > derivate(N, pair<ld, ld>(0,0)); // first = coef and second = exp
 vector< ld > powers(N, 0); // first = coef and second = exp
+unordered_map<ld, ld> roots; // save roots of p(x)
 
 ld fx = 0,  // p(x)
    dx = 0;  // p(x)' 
@@ -41,15 +42,15 @@ bool sortBySec(const pair<int,int> &a,
 void stringToLongDouble( int argc, char** argv){
   cout << endl << endl; 
 
-    bool exponent = false;
-    int j = 0;
+
 
     if(!argv[1][0] || argc == 0){ // null case
       coefNumber = "0";
       expNumber = "0";
     }
     else{
-
+          bool exponent = false;
+          int j = 0;
       for(int i = 1; i < argc; ++i){ // if inputs more " " polynomial strings
 
         while(argv[i][j]){ // travels through " " input
@@ -97,7 +98,7 @@ void stringToLongDouble( int argc, char** argv){
               }
           }
           else{
-            if(argv[i][j] != ' ' && argv) // handles stold error with blank space
+            if(argv[i][j] != ' ') // handles stold error with blank space
               coefNumber += argv[i][j];
             
           }
@@ -169,7 +170,7 @@ void fxCalc(){
 }
 
 
-void NewtonRaphson(ld x_zero){
+void NewtonRaphson(ld x_zero, int &sol){
   ld x_one = 0,
      h = 0;
   
@@ -194,12 +195,20 @@ void NewtonRaphson(ld x_zero){
         if(dx < MAX_ERROR)
           break;
     }
+    // cout<< "FX : " << fx << endl;
+    if(fx == 0.0 || abs(fx) < 10e-15){
+      if(!roots[x_zero]){
+        roots[x_zero] = x_zero;
+        sol++;
+      }
+
+    }
   }
   else{
-    cout << "dx is near to zero, cannot divide it..." << endl;
+    // cout << "dx is near to zero, cannot divide it..." << endl;
   }
 
-  cout << "X_zero root value is :" << x_zero << endl;
+  cout << "X root value is :" << x_zero << endl;
 
 }
 
@@ -219,17 +228,26 @@ int main(int argc, char** argv){
 
     derivating();
 
-    ld x = 2;
-
     for(int i = 0; i < polynomium.size(); i++){
+
       cout << " Polinomio "<< i + 1 << " :" << endl
           << "\tcoef : " << polynomium[i].first << endl
           << "\texp  : " << polynomium[i].second << endl;
     }
-    for(int i = 0; i < 10; i++){
-      NewtonRaphson(i);
+        for(int i = 0; i < polynomium.size(); i++){
 
+      cout << " Derivada "<< i + 1 << " :" << endl
+          << "\tcoef : " << derivate[i].first << endl
+          << "\texp  : " << derivate[i].second << endl;
     }
+    int sol = 0,
+        i = 0;
+
+      while(sol <= polynomium[i].second){
+          NewtonRaphson(i, sol);
+          i++;
+      }
+
   }
   else{
     cout << "Please, write a polynomial input..."<< endl;
