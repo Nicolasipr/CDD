@@ -31,29 +31,39 @@ Power Calculator
 Function evaluation 
 Derivattive Function Evaluation
 */
-void derivateCalc(){  ///las  deribadas de un polinomio son muy simples, solo la del ex
-	int exp_aux[pIndex],coef_aux[pIndex], auxiliar=0, contador=0;
-	for(contador=0;contador<=pIndex;contador++)
-	{
-      if(polynomium[contador].second>=1)
-      {
-		exp_aux[contador] = polynomium[contador].second;
-		coef_aux[contador] = polynomium[contador].first;
-		if (exp_aux[contador]>=1)
-		{   auxiliar=coef_aux[contador] * exp_aux[contador];
-			coef_aux[contador]= auxiliar;
-			exp_aux[contador] = exp_aux[contador] - 1; 
-		}
+
+bool sortbysec(const pair<int,int> &a, 
+              const pair<int,int> &b){ 
+    return (a.second > b.second); 
+} 
+void derivateCalc(){  //
+
+	ld exp_aux[pIndex],
+    coef_aux[pIndex],
+    auxiliar = 0;
+
+	for(int i=0; i <= pIndex; i++){
+
+      if(polynomium[i].second >= 1){
+        exp_aux[i] = polynomium[i].second;
+        coef_aux[i] = polynomium[i].first;
+
+        if (exp_aux[i] >= 1){   
+          auxiliar=coef_aux[i] * exp_aux[i];
+          coef_aux[i]= auxiliar;
+          exp_aux[i] = exp_aux[i] - 1; 
+        }
 		
 	  }
 	}
 	cout<<"la derivada es ";
-		int i=0;
-		for(i=0;i<contador;i++)
-		{
-		cout<< coef_aux[i]<<"x**" << exp_aux[i] << " + ";// solo es una prueba para ver si funciona hasta ahora
-	    }
-	    cout << endl << endl;// se debe llamar a la funcion que divide la funcion con su derivada
+		for(int i=0;i< pIndex;i++){
+		  cout<< coef_aux[i]<<"x**" << exp_aux[i];
+
+	    if( i + 1 < pIndex)
+        cout << " + ";
+      }
+	  cout << endl << endl;
 }
 
 void stringToLongDouble( int argc, char** argv){
@@ -71,10 +81,10 @@ void stringToLongDouble( int argc, char** argv){
 
       while(argv[i][j]){ // travels through " " input
 
-          cout << "String Coef Number: " << coefNumber << endl;
-          cout << "string Exp Number: " << expNumber << endl;
-          cout << "Current ARGV: " << argv[i][j] << endl;
-          cout << "Exponent state: " << exponent << endl << endl;
+          // cout << "String Coef Number: " << coefNumber << endl;
+          // cout << "string Exp Number: " << expNumber << endl;
+          // cout << "Current ARGV: " << argv[i][j] << endl;
+          // cout << "Exponent state: " << exponent << endl << endl;
 
 
         if(argv[i][j] == 'x' || argv[i][j] == 'X'){ // checks for coef and exp changes
@@ -143,6 +153,8 @@ int main(int argc, char** argv){
   ios_base::sync_with_stdio(false);
   stringToLongDouble(argc, argv);
   polynomium.resize(pIndex + 1);
+  sort(polynomium.begin(), polynomium.end(), sortbysec);
+  derivateCalc();
   for(int i = 0; i < polynomium.size(); i++){
     cout << " Polinomio "<< i + 1 << " :" << endl
          << "\tcoef : " << polynomium[i].first << endl
