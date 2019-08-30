@@ -111,7 +111,7 @@ void stringToLongDouble( int argc, char** argv){
     
 }
 
-void derivateCalc(){  // It derivates plynomium p(x)
+void derivating(){  // It derivates plynomium p(x)
 
 	// ld exp_aux[pIndex],
   //   coef_aux[pIndex],
@@ -168,8 +168,8 @@ int main(int argc, char** argv){
   derivate.resize(pIndex + 1);
 
   sort(polynomium.begin(), polynomium.end(), sortbysec);
-  derivateCalc();
-  
+  derivating();
+
   ld x = 2;
   powerCalc(x);
   for(int i = 0; i < powers.size(); i++) //works 
