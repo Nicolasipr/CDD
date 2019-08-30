@@ -1,10 +1,4 @@
-
-          // correr con "g++ -std=c++11 programa.cpp -o programa && ./programa"
-
-          // cout << "String Coef Number: " << coefNumber << endl;
-          // cout << "string Exp Number: " << expNumber << endl;
-          // cout << "Current ARGV: " << argv[i][j] << endl;
-          // cout << "Exponent state: " << exponent << endl << endl;
+// correr con "g++ -std=c++11 programa.cpp -o programa && ./programa"
 #include <bits/stdc++.h>
 
 // creates a ld shorcut for long double
@@ -14,12 +8,12 @@ typedef long double ld;
 // define maximum and minimum values values to Newton Raphson iterarions
 #define N 1000000
 #define MAX_ERROR 10e-15 // if error is less than 10^15 stop
-#define MAX_ITERATOR 50  // I don't want to exceed a maximum of 20 itirations
+#define MAX_ITERATOR 500  // I don't want to exceed a maximum of 20 itirations
 
 using namespace std;
 
 // GLOBAL VARIABLES
-string coefNumber = "",
+string coefNumber = "0",
        expNumber = "0";
 vector< pair< ld, ld > > polynomium(N, pair<ld, ld>(0,0)); // first = coef and second = exp
 vector< pair< ld, ld > > derivate(N, pair<ld, ld>(0,0)); // first = coef and second = exp
@@ -50,67 +44,81 @@ void stringToLongDouble( int argc, char** argv){
     bool exponent = false;
     int j = 0;
 
-    if(!argv[1][0]){ // null case
+    if(!argv[1][0] || argc == 0){ // null case
       coefNumber = "0";
       expNumber = "0";
     }
+    else{
 
-    for(int i = 1; i < argc; ++i){ // if inputs more " " polynomial strings
+      for(int i = 1; i < argc; ++i){ // if inputs more " " polynomial strings
 
-      while(argv[i][j]){ // travels through " " input
+        while(argv[i][j]){ // travels through " " input
 
-          // cout << "String Coef Number: " << coefNumber << endl;
-          // cout << "string Exp Number: " << expNumber << endl;
-          // cout << "Current ARGV: " << argv[i][j] << endl;
-          // cout << "Exponent state: " << exponent << endl << endl;
+            // cout << "String Coef Number: " << coefNumber << endl;
+            // cout << "string Exp Number: " << expNumber << endl;
+            // cout << "Current ARGV: " << argv[i][j] << endl;
+            // cout << "Exponent state: " << exponent << endl << endl;
 
 
-        if(argv[i][j] == 'x' || argv[i][j] == 'X'){ // checks for coef and exp changes
-          exponent = true;
-          polynomium[pIndex].first = stold(coefNumber); // adds coef to pair
-          coefNumber = ""; // reset string
-          if(argv[i][j + 1] != '*')
-            expNumber = "1";
-        }
-              
+          if(argv[i][j] == 'x' || argv[i][j] == 'X'){ // checks for coef and exp changes
 
-        if(exponent){ // while exponent == true
-            if(argv[i][j] != '*' && argv[i][j] != 'x' && argv[i][j] != 'X'){
-              expNumber += argv[i][j];
+            exponent = true;
+           
+
+            if(coefNumber == "" || coefNumber == " " || coefNumber == "0"){
+              polynomium[pIndex].first = 1;
             }
-            if(argv[i][j] == '-' || argv[i][j] == '+'){
-              exponent = false; 
-              polynomium[pIndex].second = stold(expNumber); 
-              pIndex++;
-              coefNumber += argv[i][j];
-              expNumber = "0";
+            else if(coefNumber == "-"){
+
+              polynomium[pIndex].first = -1;
             }
-        }
-        else{
-          if(argv[i][j] ==  '-' ){ // if it finds a - multiply by -1
-            polynomium[pIndex].first = -1;
-            exponent = false;
+            else{
+              polynomium[pIndex].first = stold(coefNumber); // adds coef to pair
+            }
+
+            coefNumber = ""; // reset string
+
+            if(argv[i][j + 1] != '*')
+              expNumber = "1";
+          }
+                
+
+          if(exponent){ // while exponent == true
+              if(argv[i][j] != '*' && argv[i][j] != 'x' && argv[i][j] != 'X'){
+                expNumber += argv[i][j];
+              }
+              if(argv[i][j] == '-' || argv[i][j] == '+'){
+                exponent = false; 
+                polynomium[pIndex].second = stold(expNumber); 
+                pIndex++;
+                if(argv[i][j] != '+')
+                  coefNumber += argv[i][j];
+                expNumber = "0";
+              }
           }
           else{
-            polynomium[pIndex].first = 1;
-            exponent = false;
+            if(argv[i][j] != ' ' && argv) // handles stold error with blank space
+              coefNumber += argv[i][j];
+            
           }
-
-          if(argv[i][j] != ' ') // handles stold error with blank space
-            coefNumber += argv[i][j];
-  
+          j++;
         }
-        j++;
-      }
-      
-      exponent = false;
-      if(pIndex >= 1){
-      polynomium[pIndex].first = stold(coefNumber); // last number of "input"
-      polynomium[pIndex].second = stold(expNumber); // last number of "input"
+        
+        exponent = false;
 
+        if(pIndex >= 1){
+          if(!polynomium[pIndex].first){
+            polynomium[pIndex].first = stold(coefNumber); // last number of "input" exception
+          }
+          if(!polynomium[pIndex].second){
+            polynomium[pIndex].second = stold(expNumber); // last number of "input" exception
+          }
+        }
+        j = 0;
       }
-      j = 0;
+
     }
+
     
 }
 
@@ -159,34 +167,29 @@ void fxCalc(){
 
 }
 
-// void dxFunCalc(){ // less work if commented 
 
-//     for(int i = 0; i < derivate.size(); i++){
-//     dx += derivate[i].first * powers[derivate[i].second];
-//   }
-
-// }
 void NewtonRaphson(){
   ld x_zero = 0.5,
-     x_one = 100,
+     x_one = 0,
      h = 0;
   
   powerCalc(x_zero);
   fxCalc();
+  x_one = x_zero - fx/dx;
+
   h = x_one - x_zero;
 
   if(dx > MAX_ERROR){ //avoiding zero division
     int i = 0;
     while( abs(h) > MAX_ERROR && i < MAX_ITERATOR){
-          // cout << "p("<< x_zero << ") = " << fx << endl;
-          // cout << "p("<< x_zero << ")' = " << dx << endl;
+        cout << "p("<< x_zero << ") = " << fx << endl;
+        cout << "p("<< x_zero << ")' = " << dx << endl;
 
-        // cout << x_zero << endl;
         x_one = x_zero - fx/dx;
-        powerCalc(x_one);
-        fxCalc();
+        powerCalc(x_one); // precomputes all powers again
+        fxCalc(); // recalculates fx and dx
         h = x_one - x_zero;
-        x_zero =  x_one;
+        x_zero =  x_one; 
         i++;
         if(dx < MAX_ERROR)
           break;
@@ -203,7 +206,7 @@ void NewtonRaphson(){
 int main(int argc, char** argv){
   
   ios_base::sync_with_stdio(false);
-  cout.precision(64); 
+  cout.precision(20); 
 
   stringToLongDouble(argc, argv);
 
