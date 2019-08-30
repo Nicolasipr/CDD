@@ -28,6 +28,11 @@ Requirement  | Version
 
 So in under to make sure that our code will work under your environment you have to install those versions first (if you don't have the utilities).
 
+If you want to check our code, please check it as you like. Here you can find a command line input to use cppcheck:
+
+```
+$ cppcheck --enable=all  --suppress=missingIncludeSystem programa.cpp 2>err.txt
+```
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 

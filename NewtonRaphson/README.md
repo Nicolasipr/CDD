@@ -7,25 +7,25 @@ This code will grab an argument from the command line and it will solve a polyno
 
 - [x] Getting arguments from Command line
 - [x] parsing argv to useful data 
-- [ ] Sorting polynomial function for better handling
+- [x] Sorting polynomial function for better handling
 - [x] parsing argv to useful data 
-- [ ] Calculating power of k-th term
-- [ ] Evaluating Function
-- [ ] Calculating derivative
-- [ ] Evaluating derivative
-- [ ] Showing x i-th term
-- [ ] parsing argv to useful data 
+- [x] Calculating power of k-th term
+- [x] Evaluating Function
+- [x] Calculating derivative
+- [x] Evaluating derivative
+- [x] Showing x i-th term
+ 
 
 ## How it works
 We have divide the code in several functions to make it more easy to read and comprehend. 
 
     .
     ├── ...
-    ├── StringtoLongDouble()           # Parse the command line argument to long double useful data in a vector of pairs.
-    ├── PowerCalculator()               # pre-compute all the polynomial power of degree d, in order  to just calculate that once.
-    ├── FunctionEvaluation()            # it uses pre-computed data to evaluate f(x)
-    ├── DerivativeCalculator()          # Calculates it's  derivative
-    ├── DerivativeEvaluation()          # Evaluates f(x)' function
+    ├── sortBySec(pair a, pair b)                     # Helps to selects the exponent side of pair vector and order it
+    ├── StringtoLongDouble(argc, **argv)            # Parse the command line argument to long double useful data in a vector of pairs.
+    ├── derivating()                    # It derivatives polynomial p(x) into p(x)'
+    ├── PowerCalc()                     # pre-compute all the polynomial power of degree d, saves it into a vector.
+    ├── fxCalc(x_0)                        # Evaluates both p(x) and p(x)' with a value of x_0 given
     ├── NewtonRaphson()                 # Uses all functions from above to calculate its roots
     └── ...
 
@@ -34,6 +34,13 @@ It's meant to work under this command line input:
 ```
 $ ./programa "some polynomial input"
 ```
+
+If you haven't compile it you can still do it by running this line of code under your command line:
+
+```
+$ g++ -std=c++11 programa.cpp -o programa
+```
+ That creates and executable that can be used as shown above.
 
 
 ## Contributing
