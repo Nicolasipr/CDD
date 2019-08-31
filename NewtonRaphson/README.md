@@ -34,12 +34,12 @@ We have divide the code in several functions to make it more easy to read and co
 
     .
     ├── ...
-    ├── sortBySec(pair a, pair b)                   # Helps to selects the exponent side of pair vector and order it
-    ├── StringtoLongDouble(argc, **argv)            # Parse the command line argument to long double useful data in a vector of pairs.
-    ├── derivating()                                # It derivatives polynomial p(x) into p(x)'
-    ├── PowerCalc()                                 # pre-compute all the polynomial power of degree d, saves it into a vector.
-    ├── fxCalc(x_0)                                 # Evaluates both p(x) and p(x)' with a value of x_0 given
-    ├── NewtonRaphson()                        # Uses all functions from above to calculate its roots
+    ├── sortBySec(pair a, pair b)                      # Helps to selects the exponent side of pair vector and order it
+    ├── StringtoLongDouble(argc, **argv)     # Parse the command line argument to long double useful data in a vector of pairs.
+    ├── derivating()                                            # It derivatives polynomial p(x) into p(x)'
+    ├── PowerCalc()                                            # pre-compute all the polynomial power of degree d, saves it into a vector.
+    ├── fxCalc(x_0)                                             # Evaluates both p(x) and p(x)' with a value of x_0 given
+    ├── NewtonRaphson()                                 # Uses all functions from above to calculate its roots
     └── ...
 
 It's meant to work under this command line input: 
