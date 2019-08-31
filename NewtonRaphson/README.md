@@ -1,7 +1,7 @@
 # Newton Raphson method
 
 This code will grab an argument from the command line and it will solve a polynomial of degree d ∈ ℕ. Or at least it will
- show an approximation of the current root of that polynomial f(x).
+show an approximation of the current root of that polynomial f(x).
  
 We all know Newton Raphson or Newton Fourier iteration method of root finding, and it can easily solve non-linear equations
 
@@ -15,6 +15,10 @@ and given the value of x = xi at the end of the ith iteration, we obtain xi+1 as
 
 
 ![equation](https://latex.codecogs.com/png.latex?x_%7Bi&plus;1%7D%20%3D%20x_i%20-%20%5Cfrac%7Bf%28x_i%29%7D%7Bf%27%28x_i%29%7D)
+
+
+As far as our code does, it shows some of the real roots, since part of the complex roots were not part of this assigment. 
+If some polynomial has k same roots, it's going to display a single root value. 
 
 ## To be completed
 
@@ -31,7 +35,7 @@ and given the value of x = xi at the end of the ith iteration, we obtain xi+1 as
 
 ## How it works
 We have divide the code in several functions to make it more easy to read and comprehend. 
-
+### Functions
     .
     ├── ...
     ├── sortBySec(pair a, pair b)                      # Helps to selects the exponent side of pair vector and order it
@@ -41,6 +45,26 @@ We have divide the code in several functions to make it more easy to read and co
     ├── fxCalc(x_0)                                             # Evaluates both p(x) and p(x)' with a value of x_0 given
     ├── NewtonRaphson()                                 # Uses all functions from above to calculate its roots
     └── ...
+
+#### SortBySec(pair a, pair b): Sort by Exponent
+This piece of code right here returns the comparison of pairs by its second attribute. In order to sort the polynomial entity 
+we had to sort it to dislay it effectively. It is now completely necessary but we did it in order to comprehend or data better.
+
+```cpp
+bool sortBySec(const pair<int,int> &a, 
+              const pair<int,int> &b){ 
+    return (a.second > b.second); // helps to sort by segment of pair (exponent)
+} 
+```
+This segment of code it's used in this specific part of our work, right here: 
+```cpp 
+ sort(polynomium.begin(), polynomium.end(), sortBySec); 
+```
+
+#### StringtoLongDouble(argc, **argv): String to Long Double 
+#### derivating():   
+#### PowerCalc(): Computes all Powers of X P
+#### NewtonRaphson(): 
 
 It's meant to work under this command line input: 
 
