@@ -34,7 +34,8 @@ If some polynomial has k same roots, it's going to display a single root value.
  
 
 ## How it works
-We have divide the code in several functions to make it more easy to read and comprehend. 
+We have divide the code in several functions to make it more easy to read and comprehend. And we've work with goblal variables
+in order to make life more easier, because... Why not? :dog:
 ### Functions
     .
     ├── ...
@@ -62,6 +63,22 @@ This segment of code it's used in this specific part of our work, right here:
 ```
 
 #### StringtoLongDouble(argc, **argv): String to Long Double 
+This function what basically does is to collect all the string inputs given as parameters in main() section and work it as 
+a long double vector of pairs. 
+
+```cpp 
+ int main(int argc, char** argv){
+ 
+  // some code
+  ...
+  
+ }
+```
+
+And we use StringtoLongDouble  (Actually pointer of pointer of char) to divide the coefficient and exponent as pair.first and
+pair.second, as shown before.
+
+
 #### derivating():   
 #### PowerCalc(): Computes all Powers of X P
 #### NewtonRaphson(): 
