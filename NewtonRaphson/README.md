@@ -40,6 +40,24 @@ If some polynomial has k same roots, it's going to display a single root value.
 ## How it works
 We have divide the code in several functions to make it more easy to read and comprehend. And we've work with goblal variables
 in order to make life more easier, because... Why not? :dog:
+
+### Running it
+
+It's meant to work under this command line input: 
+
+```
+$ ./programa "some polynomial input"
+```
+
+If you haven't compile it you can still do it by running this line of code under your command line:
+
+```
+$ g++ -std=c++11 programa.cpp -o programa
+```
+ That creates and executable that can be used as shown above.
+
+
+
 ### Functions
     .
     ├── ...
@@ -182,20 +200,6 @@ void NewtonRaphson(ld x_zero, int &sol){
 
 }
 ``` 
-
-It's meant to work under this command line input: 
-
-```
-$ ./programa "some polynomial input"
-```
-
-If you haven't compile it you can still do it by running this line of code under your command line:
-
-```
-$ g++ -std=c++11 programa.cpp -o programa
-```
- That creates and executable that can be used as shown above.
-
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
