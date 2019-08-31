@@ -31,6 +31,10 @@ If some polynomial has k same roots, it's going to display a single root value.
 - [x] Calculating derivative
 - [x] Evaluating derivative
 - [x] Showing x i-th term
+- [ ] Checking issues with  negatives roots
+- [ ] multiple  roots
+- [ ] complex roots
+- [ ] Completing README.md
  
 
 ## How it works
@@ -80,8 +84,104 @@ pair.second, as shown before.
 
 
 #### derivating():   
+Since it's just a simple polynomial, its derivative it's considerably easy.
+```cpp
+void derivating(){  // It derivates plynomium p(x)
+
+    for(int i=0; i <= pIndex; i++){ 
+
+        if(polynomium[i].second >= 1){
+            derivate[i].second = polynomium[i].second;
+            derivate[i].first = polynomium[i].first;
+
+        if (derivate[i].second >= 1){   
+            derivate[i].first *= derivate[i].second;
+            derivate[i].second -= 1; 
+        }
+      }
+   }
+}
+``` 
+Add that derivate to a vector of pairs called "derivate" containing those coefficient and exponent as first and second.
+ 
+
 #### PowerCalc(): Computes all Powers of X P
+It pre-computes all k powers of x up to max polynomial degree d, then we seek those values and we don't have to calculate them every them we look 
+for the k value of x.
+
+```cpp
+void powerCalc(ld xValue){
+  powers.resize(polynomium[0].second + 1);      // it resizes powers vector to maximun degree power
+  powers[0] = 1;                                                        // sets something to the power of zero equals to 1
+  
+  for(int i = 0; i <= polynomium[0].second; i++){
+    powers[i + 1] = powers[i] * xValue; 
+  }
+}
+``` 
+### fxCalc():  Function evaluation of a given x
+What it does it's simple multiply the value of the coefficient with the assigned power k and look it into the precomputed k powers vector
+
+```cpp
+
+void fxCalc(){
+  fx = 0;
+  dx = 0;
+  for(int i = 0; i < polynomium.size(); i++){
+    fx += polynomium[i].first * powers[polynomium[i].second]; //it computes polynomial p(x)
+    dx += derivate[i].first * powers[derivate[i].second];    // it computes derivative px/dx
+  }
+
+}
+```
+
 #### NewtonRaphson(): 
+Here's where everything comes together. We iterate under a maximum of 50 steps or until it reach the maximum error tolerance that we had fixed
+earlier (10^-15). Once that's done, checks if the answer given it's already on the roots unordered map, if already exist, do not save it and keep going.
+
+
+```cpp
+void NewtonRaphson(ld x_zero, int &sol){
+  ld x_one = 0,
+     h = 0;
+  
+  powerCalc(x_zero);
+  fxCalc();
+
+  x_one = x_zero - fx/dx;
+  h = x_one - x_zero;
+
+  if(abs(dx) > MAX_ERROR){ //avoiding zero division
+    int i = 0;
+
+    while( abs(h) > MAX_ERROR && i < MAX_ITERATOR){
+
+        x_one = x_zero - fx/dx;
+        powerCalc(x_one); // precomputes all powers again
+        fxCalc(); // recalculates fx and dx
+        h = x_one - x_zero;
+        x_zero =  x_one; 
+        i++;
+        if(dx < MAX_ERROR)
+          break;
+    }
+
+    if(fx == 0.0 || abs(fx) < 10e-15){
+      if(!roots[x_zero]){
+        roots[x_zero] = x_zero;
+        sol++;
+      }
+
+    }
+  }
+  else{
+    // cout << "dx is near to zero, cannot divide it..." << endl;
+  }
+
+  cout << "X root value is : " << x_zero << endl;
+
+}
+``` 
 
 It's meant to work under this command line input: 
 
