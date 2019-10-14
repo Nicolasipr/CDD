@@ -8,5 +8,8 @@
 using namespace std;
 
 int main(){
-    Board();
+    Board Game;
+    Game.showBoard();
+
+
 }
