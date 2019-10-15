@@ -15,16 +15,26 @@ Board::~Board() {
 
 }
 void Board::showBoard() {
-
+    system("clear");
     for (int i = 0; i <= (height + scoreBoard); i++){
         if ( i == scoreBoard/2) {
-            cout << "#\tUsername 1 Score: 99   \t\t" << "  #\tUsername 2 Score: 99\t\t";
+            cout << "#\tPlayer 1 Score: "<< playerOneScore <<"  \t\t" << "  #\tPlayer 2 Score : " << playerTwoScore <<"\t\t";
         }
 
         for ( int j = 0; j <= (width); j++){
 
+            if( i == ballYPosition && j == ballXPosition) {
+                cout << "O";
+                continue;
+            }
             if(i == 0 || i == (height + scoreBoard) || i == scoreBoard ){
-                cout << "#";
+                if(i == scoreBoard/2) {
+                    continue;
+                }
+                else {
+                    cout << "#";
+                }
+
             }
             else if ( j == 0 || j == (width) || (j == width/2 && i <= scoreBoard) ){
 
