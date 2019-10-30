@@ -6,7 +6,6 @@
 #define GAME_BOARD_H
 
 
-
 class Board {
 
 private:
@@ -17,12 +16,14 @@ private:
 
 
 //  Player One Settings
+
     char player1Name = ' ';
     int playerOneScore = 0;
     char p1UpKey = 'w';
     char p1DownKey = 's';
 
 //    Player Two Settings
+
     char player2Name = ' ';
     int playerTwoScore = 0;
     char p2UpKey = 'i';
@@ -46,13 +47,16 @@ public:
 
     // BALL
     void setBallPos(int posX, int posY);
+    void resetBall();
     void ballHandler(); // bounces the ball and displaces it
     int getYPos();
     int getXPos();
     int getBallXDirection();
     int getBallYDirection();
 
+
     // PLAYERS
+    void playerHandler();
     void onKey();
 
 };

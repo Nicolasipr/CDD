@@ -39,6 +39,9 @@ void Board::onKey(){
  *  setBallPos() -> modifies the current ball position.
  *  getXPos() -> Gets the current X position of the ball on the board
  *  getYPos() ->  gets the current Y position of the ball on the board
+ *  getBallXDirection() ->
+ *  getBallYDirection() ->
+ *  resetBall() ->  resets  ball position to initial values
  * */
 void Board::setBallPos(int posX, int posY) {
     ballXPosition = posX;
@@ -60,11 +63,18 @@ int Board::getBallYDirection(){
     return ballYDirection;
 }
 
+void Board::resetBall() {
+    ballXPosition = width/2;
+    ballYPosition = (height + scoreBoard)/2;
+}
+
 
 /*
  *  GAME HANDLERS AND FUNCTIONS
  *
  *  showBoard() -> displays data, players and ball onto the board.
+ *  ballHandler() ->
+ *  gameHandler() -> 
  *
  * */
 
@@ -74,9 +84,9 @@ void Board::ballHandler() {
     int board = height + scoreBoard,
         x = getXPos(),
         y = getYPos(),
-        xDir = getBallXDirection(),
         yDir  = getBallYDirection();
 
+    //      WALLS
     // upper wall
     if( y == scoreBoard + 1){
         if( (y + yDir) == scoreBoard){
@@ -89,11 +99,24 @@ void Board::ballHandler() {
             ballYDirection = -1;
         }
     }
-    // player pads
+    //      PLAYERS PADS
 
-    // moving ball
-    int nextX = x + ballXDirection,
-        nextY = y + ballYDirection;
+    //      SCORING POINTS
+    // P1
+    if( x == (width - 1) ){
+        playerOneScore += 1;
+        resetBall();
+        ballXDirection = -1; // left
+    }
+    // P2
+    if( x == 1 ){
+        playerTwoScore += 1;
+        resetBall();
+        ballXDirection = 1; // right
+    }
+    //          MOVING BALL
+    int nextX = getXPos() + ballXDirection,
+        nextY = getYPos() + ballYDirection;
     setBallPos(nextX, nextY);
 }
 void Board::showBoard() {
