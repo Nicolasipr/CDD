@@ -5,9 +5,11 @@
 #ifndef GAME_MENU_H
 #define GAME_MENU_H
 
+void initGame();
 void displayName();
 void displayMenu();
-void showInfo();
+void displayOptions();
+void displayAbout();
 void setSpeed();
 
 #endif //GAME_MENU_H
