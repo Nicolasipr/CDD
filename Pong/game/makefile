@@ -1,23 +1,23 @@
-#Makefile for Pong
-##
-
-SHELL=/bin/sh
-DEBUG_OPTIONS=-std=c++11 -ggdb3 -Wall -Wextra -lncurses -o pong
-
-SRCDIR=.
-SOURCES_= main.cpp Board.cpp Player.cpp Menu.cpp
-SOURCES=$(addprefix $(SRCDIR),$(SOURCES_))
-
-INCLUDES_=ncurses
-INCLUDES=$(addprefix -l,$(INCLUDES_))
-MY_INCLUDES=./includes/
-
-EXE=pong
-
-
+CXX=g++
+CXXFLAGS= -std=c++11 -Wall -Wextra -lncurses
+EXPORT=-o pongGame
 all:
-	$(CC) $(INCLUDES) -I$(MY_INCLUDES) $(SOURCES) -o $(EXE)
+	$(CXX) $(CXXFLAGS) ../main.cpp Board.cpp Player.cpp Menu.cpp $(EXPORT)
 
-debug:
-	$(CC) $(DEBUG_OPTIONS) $(INCLUDES) -I$(MY_INCLUDES) $(SOURCES) -o $(EXE)
-S
+# pongGame: main.o Board.o Player.o Menu.o
+# 	g++ -std=c++11 -Wall -Wextra -lncurses main.o Board.o Player.o Menu.o -o pongGame
+#
+# main.o: main.cpp
+# 	g++ -c main.cpp -o main.o
+#
+# Board.o: Board.cpp
+# 	g++ Board.cpp -o Board.o
+#
+# Player.o: Player.cpp
+# 	g++ Player.cpp -o Player.o
+#
+# Menu.o: Menu.cpp
+# 	g++ Player.cpp -o Player.o
+
+clean:
+	rm *.o pongGame
