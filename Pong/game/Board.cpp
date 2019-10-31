@@ -2,7 +2,7 @@
 // Created by nicolasipr on 14/10/2019.
 //
 
-#include "Board.h"
+#include "includes/Board.h"
 
 #include <chrono>
 #include <thread>
@@ -21,16 +21,7 @@ Board::~Board() {
     cout << "Board has been destroyed\n ";
 
 }
-// NOT WORKING
-void Board::onKey(){
-    initscr();
-    int k;
-    do {
-        k = getch();
 
-    } while ( k != 27);
-    endwin();
-}
 
 
 /*
@@ -74,7 +65,7 @@ void Board::resetBall() {
  *
  *  showBoard() -> displays data, players and ball onto the board.
  *  ballHandler() ->
- *  gameHandler() -> 
+ *  gameHandler() ->
  *
  * */
 

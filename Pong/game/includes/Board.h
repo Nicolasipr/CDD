@@ -57,7 +57,6 @@ public:
 
     // PLAYERS
     void playerHandler();
-    void onKey();
 
 };
 
