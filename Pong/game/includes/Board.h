@@ -42,7 +42,7 @@ public:
     ~Board();
     // Game itself
     void gameHandler(); // handles data, ball movements and points
-    void gameMenu(); // displays menu to show rules and display information about the game an creators
+    void gameMenu(); // displays menu to show rules and display information about the game and creators
     void showBoard(); // displays board: players, ball, points, and more.
 
     // BALL
