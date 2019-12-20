@@ -5,8 +5,13 @@
 #ifndef GAME_BOARD_H
 #define GAME_BOARD_H
 
+#include "Game.h"
+//#include "Player.h"
 
-class Board {
+class Game;
+//class Player;
+
+class Board : public Game{ // hybrid inheritance
 
 private:
     // Board limits
@@ -14,11 +19,12 @@ private:
     const int height = 20;
     const int scoreBoard = 4;
 
-
 //  Player One Settings
 
     char player1Name = ' ';
     int playerOneScore = 0;
+    const char* playerOnePaddle = "123456";
+    int playerOnePos = (height + scoreBoard)/2 - 3;
     char p1UpKey = 'w';
     char p1DownKey = 's';
 
@@ -26,6 +32,8 @@ private:
 
     char player2Name = ' ';
     int playerTwoScore = 0;
+    const char* playerTwoPaddle = "123456";
+    int playerTwoPos = (height + scoreBoard)/2 - 3;
     char p2UpKey = 'i';
     char p2DownKey = 'k';
 
@@ -40,6 +48,7 @@ public:
     Board();
     Board(char newName);
     ~Board();
+
     // Game itself
     void gameHandler(); // handles data, ball movements and points
     void gameMenu(); // displays menu to show rules and display information about the game and creators
@@ -54,9 +63,11 @@ public:
     int getBallXDirection();
     int getBallYDirection();
 
-
     // PLAYERS
     void playerHandler();
+    int getPlayerOneYPos();
+    int getPlayerTwoYPos();
+    int getPlayerXPos(); //
 
 };
 

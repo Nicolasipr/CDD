@@ -7,22 +7,19 @@
 #include <chrono>
 #include <thread>
 #include <iostream>
-#include <ncurses.h>
 
 using namespace std;
 
 // CONSTRUCTOR
 Board::Board() {
-    cout << "Board has been created\n";
+//    cout << "Board has been created\n";
 }
 
 // DESTRUCTOR
 Board::~Board() {
-    cout << "Board has been destroyed\n ";
+//    cout << "Board has been destroyed\n ";
 
 }
-
-
 
 /*
  *  BALL SETTINGS AND HANDLERS
@@ -59,6 +56,21 @@ void Board::resetBall() {
     ballYPosition = (height + scoreBoard)/2;
 }
 
+/*
+ *  Player HANDLERS AND FUNCTIONS
+ *
+ *  showBoard() -> displays data, players and ball onto the board.
+ *  ballHandler() ->
+ *  gameHandler() ->
+ *
+ * */
+
+int Board::getPlayerOneYPos() {
+    return playerOnePos;
+}
+int Board::getPlayerTwoYPos() {
+    return playerTwoPos;
+}
 
 /*
  *  GAME HANDLERS AND FUNCTIONS
@@ -70,27 +82,62 @@ void Board::resetBall() {
  * */
 
 
+
+
 void Board::ballHandler() {
 
     int board = height + scoreBoard,
         x = getXPos(),
         y = getYPos(),
-        yDir  = getBallYDirection();
+        yDir  = getBallYDirection(),
+        xDir  = getBallXDirection();
 
     //      WALLS
     // upper wall
     if( y == scoreBoard + 1){
         if( (y + yDir) == scoreBoard){
-             ballYDirection = 1;
+             ballYDirection = 1; // down
         }
     }
     // bottom wall
     if( y == scoreBoard + height - 1){
         if( (y + yDir) == board){
-            ballYDirection = -1;
+            ballYDirection = -1; // up
         }
     }
     //      PLAYERS PADS
+
+    // Player One
+    if( x + xDir == 4) {
+        if( getPlayerOneYPos() == y  || getPlayerOneYPos() + 1 == y ){ // first to paddles
+            ballYDirection = -1;
+            ballXDirection = 1;
+        }
+        else if ( getPlayerOneYPos() + 2 == y  || getPlayerOneYPos() + 3 == y){ // middle segment
+                ballYDirection = 0;
+                ballXDirection = 1;
+            }
+        else if ( getPlayerOneYPos() + 4 == y  || getPlayerOneYPos() + 5 == y){ // last segment paddles
+            ballYDirection = 1;
+            ballXDirection = 1;
+        }
+    }
+    // Player Two
+    if( x + xDir == width - 4) {
+        if( getPlayerTwoYPos() == y  || getPlayerTwoYPos() + 1 == y ){ // first to paddles
+            ballYDirection = -1;
+            ballXDirection = -1;
+        }
+        else if ( getPlayerTwoYPos() + 2 == y  || getPlayerTwoYPos() + 3 == y){ // middle segment
+            ballYDirection = 0;
+            ballXDirection = 1;
+        }
+        else if ( getPlayerTwoYPos() + 4 == y  || getPlayerTwoYPos() + 5 == y){ // last segment paddles
+            ballYDirection = 1;
+            ballXDirection = -1;
+        }
+    }
+
 
     //      SCORING POINTS
     // P1
@@ -113,17 +160,20 @@ void Board::ballHandler() {
 void Board::showBoard() {
 
     system("clear");
+    int k1 = 0,
+        k2 = 0;
     for (int i = 0; i <= (height + scoreBoard); i++){
         if ( i == scoreBoard/2) {
             cout << "#\tPlayer 1 Score: "<< playerOneScore <<"  \t\t" << "  #\tPlayer 2 Score : " << playerTwoScore <<"\t\t";
         }
 
         for ( int j = 0; j <= (width); j++){
-
+            // Printing ball
             if( i == ballYPosition && j == ballXPosition) {
                 cout << pongBall;
                 continue;
             }
+            // printing board
             if(i == 0 || i == (height + scoreBoard) || i == scoreBoard ){
                 if(i == scoreBoard/2) {
                     continue;
@@ -140,9 +190,42 @@ void Board::showBoard() {
             else if ( i == scoreBoard/2 ) {
                 continue;
             }
+
+            // printing middle line
             else if ( j == width/2 && i > scoreBoard){
                 cout << "|";
             }
+
+             // players
+           else if( j == 4){
+                if(  i >= getPlayerOneYPos() && (getPlayerOneYPos() + 6) <= (height + scoreBoard - 1 ) && i > scoreBoard){
+                    if( k1 < 6) {
+                        cout << playerOnePaddle[k1];
+                        k1++;
+                    }
+                    else{
+                        cout << " ";
+                    }
+                }
+                else{
+                    cout << " ";
+                }
+           }
+
+          else if( (width - j) == 4){
+                if(  i >= getPlayerTwoYPos() && (getPlayerTwoYPos() + 6) <= (height + scoreBoard - 1 ) && i > scoreBoard){
+                    if( k2 < 6) {
+                        cout << playerTwoPaddle[k2];
+                        k2++;
+                    }
+                    else{
+                        cout << " ";
+                    }
+                }
+                else{
+                    cout << " ";
+                }
+           }
             else {
                 cout << " ";
             }
