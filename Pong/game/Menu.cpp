@@ -4,16 +4,20 @@
 
 #include "includes/Menu.h"
 #include "includes/Board.h"
+#include "includes/Game.h"
+#include "includes/Player.h"
 #include <iostream>
-#include <curses.h>
+#include <cstdlib>
 #include <chrono>
 #include <thread>
 
+
 using namespace std;
+
+Game Pong;
 
 void displayName(){
     system("clear");
-    clear();
     cout << "\n\n"
         << "\n\t\t    ____                    "
         << "\n\t\t   / __ \\____  ____  ____ _ "
@@ -23,11 +27,10 @@ void displayName(){
         << "\n\t\t                  /____/    "
         << "\n\n\n";
     this_thread::sleep_for(chrono::milliseconds(3000));
-    clear();
+
 }
 void displayMenu(){
     system("clear");
-//        clear();
     cout << "\n\n\n"
          << "\n\t\t    __  ___                 "
          << "\n\t\t   /  |/  /__  ____  __  __"
@@ -41,7 +44,7 @@ void displayMenu(){
          << "\n\t\t  (3) ABOUT"
          << "\n\t\t  (q) EXIT"
          << "\n\n\n";
-    this_thread::sleep_for(chrono::milliseconds(500));
+    this_thread::sleep_for(chrono::milliseconds(200));
 }
 void displayOptions(){
 
@@ -63,16 +66,21 @@ void displayOptions(){
              << "\n\t\t  (4) SPEED   "
              << "\n\t\t  (q) EXIT\n\n";
 
-        this_thread::sleep_for(chrono::milliseconds(500));
-        key = getchar();
-        switch(key){
-            case ERR:
-                break;
+        this_thread::sleep_for(chrono::milliseconds(200));
+        key = Pong.controlInput();
+        switch(key = Pong.controlInput() ){
+
             case '1':
-                cout << "Setting up Server";
+                cout << "Setting up Server...\n";
+                Pong.setServer();
                 break;
             case '2':
                 cout << "Setting up Player 1";
+//                Player player();
+                while(1){
+                    Player(1).connection();
+
+                }
                 break;
             case('3'):
                 cout << "Setting up Player 2";
@@ -86,7 +94,7 @@ void displayOptions(){
             default:
                 break;
         }
-    }while( key != 'q');
+    }while( (key = Pong.controlInput() ) != 'q');
 
 }
 
@@ -106,39 +114,44 @@ void displayAbout(){
              << "\n\t  as an assignment for Data Communication"
              << "\n\t  at Metropolitan University of Technology."
              << "\n\t  This Pong is an UDP client to server multi-player"
-             << "\n\t  online game, where clients sends its X & Y position"
+             << "\n\t  online game, where clients sends its Y position"
              << "\n\t  for the game to process."
              << "\n\n\n\n Press \"q\" to Exit to main Menu ...\n\n";
-        this_thread::sleep_for(chrono::milliseconds(500));
-        key = getchar();
+        this_thread::sleep_for(chrono::milliseconds(200));
+        key = Pong.controlInput();
         switch(key){
-            case ERR:
-                break;
+
             case('q'):
                 key ='q';
                 break;
             default:
                 break;
         }
-    }while( key != 'q');
+    }while( (key = Pong.controlInput() ) != 'q');
 }
 
 void initGame(){
 
     displayName();
-    Board Game;
+    Board Court;
+//    Game Pong;
     char key;
     do{
         displayMenu();
-        this_thread::sleep_for(chrono::milliseconds(500));
-        key = getchar();
-        switch(key){
-            case ERR:
-                break;
+        this_thread::sleep_for(chrono::milliseconds(200));
+        switch( key = Pong.controlInput() ){
+
             case '1':
-                cout << "Entering into the game";
-//                endwin();
-                Game.gameHandler();
+
+                if(1){
+                    system("clear");
+                    cout << "Entering into the game";
+                    Court.gameHandler();
+                }
+                else{
+                    cout << "Server hasn't been set yet";
+                }
+
                 break;
             case '2':
                 displayOptions();
@@ -154,6 +167,6 @@ void initGame(){
             default:
                 break;
         }
-    }while( key != 'q');
+    }while( (key = Pong.controlInput() ) != 'q');
 //    endwin();
 }
