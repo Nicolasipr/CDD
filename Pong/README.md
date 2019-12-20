@@ -26,9 +26,9 @@ Regarding Game functionality:
 - [x] Creating a ball
 - [x] Wall Collisions 
 - [x] Reseting ball each time a player scores
-- [ ] Player's Paddle Collision
+- [x] Player's Paddle Collision
 - [ ] Sending Paddle Y Position to server
-- [ ] Player Key event handler
+- [x] Player Key event handler
 - [ ] Setting up match: Best of three sets, Casual-mode & more (hopefully)... 
 
 ## How it works
