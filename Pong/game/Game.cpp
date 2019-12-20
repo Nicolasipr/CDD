@@ -27,8 +27,6 @@ using namespace std;
 Game::Game() {
 
     cout << "\n\n\n\t\tLoading...";
-//    Player1 = new Player(1);
-//    Player2 = new Player(2);
     system("clear");
 }
 
@@ -52,11 +50,7 @@ char Game::controlInput() {
     /* set the new settings immediately */
     tcsetattr(STDIN_FILENO,TCSANOW,&new_tio);
 
-    // do {
     c=getchar();
-//      printf("%c ",c);
-    // } while(c!='q');
-
     /* restore the former settings */
     tcsetattr(STDIN_FILENO,TCSANOW,&old_tio);
 
