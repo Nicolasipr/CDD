@@ -20,12 +20,10 @@ public:
 
 private:
     auto    FPS = 30;
-    Board   *boardGrid;
-    Player  *Player1,
-            *Player2;
+    Board   boardGrid;
+    Player  Player1,
+            Player2;
     Ball    ball;
-
-
 };
 
 
