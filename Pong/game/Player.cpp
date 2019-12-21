@@ -22,7 +22,7 @@ Player::Player(int newSide) {
     connection();
 }
 Player::~Player() {
-    cout << "Player " << playerSide << " Has ben  destroyed!";
+//    cout << "Player " << playerSide << " Has ben  destroyed!";
 //    closeConnection();
 }
 int Player::getPaddleYPos() {
@@ -38,17 +38,13 @@ char * Player::getPaddle() {
     return paddle;
 }
 
-void Player::sendPosY(){
-
-
-}
 
 void Player::connection(){
 
     hostent * record = gethostbyname(getAddress());
 
     if(record == NULL){
-        cout <<"\n" <<  getAddress() <<" is unavailable";
+//        cout <<"\n" <<  getAddress() <<" is unavailable";
         exit(1);
     }
 
@@ -57,8 +53,14 @@ void Player::connection(){
     char* ip_address = inet_ntoa(* addressHost);
 
     int port = getPort();
-    char c = controlInput();
-    const char * message = reinterpret_cast<const char(*)>(&c);
+    char    buf[BUFFER_SIZE], // buffer to receive;
+            mes_buff[5]; // message buffer to send;
+
+    mes_buff[0] = getPlayerSide() + '0';
+    mes_buff[1] = '+';
+    mes_buff[2] = controlInput();
+    mes_buff[3] = '\0';
+
 
     cout << "\nServer Name Address: " << getAddress() << endl
          << "IPv4 Address: " << ip_address << endl
@@ -67,7 +69,7 @@ void Player::connection(){
 
 
     struct sockaddr_in server; //IPV4
-    char buf[BUFFER_SIZE];
+
 
     // udp connection
 
@@ -76,7 +78,7 @@ void Player::connection(){
 
 
     if(sock < 0){
-        cout << "Error while opening socket";
+//        cout << "Error while opening socket";
         exit(1);
     }
     // connection
@@ -91,10 +93,10 @@ void Player::connection(){
     unsigned int len;
 
 
-    sendto(sock, message, strlen(message) ,
+    sendto(sock, (const char *) mes_buff, strlen(mes_buff) ,
            MSG_CONFIRM, (const struct sockaddr *) &server,
            sizeof(server));
-    cout << "message sent" << endl;
+//    cout << "message sent" << endl;
 
     recvfrom(sock, (char *) buf, BUFFER_SIZE,
                  MSG_WAITALL, (struct sockaddr *) &server,
@@ -102,7 +104,7 @@ void Player::connection(){
 
     buf[len] = '\0';
 
-    printf("Server: %s\n", buf);
+//    printf("Server: %s\n", buf);
 
     close(sock);
 }
