@@ -20,11 +20,15 @@ private:
     int paddleYPos = 0; // centering players paddle.
     int paddleXPos  = 0;
 
+    char key[31] = "@PoNg_CdD_iN_C++_HaVe_FuN!@";
+
 public:
     Player(int newSide);
     ~Player();
 
     void connection();
+
+    char* createMessage(char * msg);
 
     int getPaddleYPos();
     void setPaddleYPos();

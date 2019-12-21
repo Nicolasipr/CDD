@@ -38,6 +38,20 @@ char * Player::getPaddle() {
     return paddle;
 }
 
+char* Player::createMessage( char * mes_buff) {
+
+
+    mes_buff[0] = getPlayerSide() + '0';
+    mes_buff[1] = '+';
+    mes_buff[2] = controlInput();
+
+    for(long unsigned int  i = 3 ; i < 64; i++)
+        mes_buff[i] = getRandomChar();
+
+    mes_buff[64] = '\0';
+
+    return encryption(mes_buff, key);
+}
 
 void Player::connection(){
 
@@ -48,25 +62,24 @@ void Player::connection(){
         exit(1);
     }
 
-
     in_addr * addressHost = (in_addr * )record->h_addr;
     char* ip_address = inet_ntoa(* addressHost);
 
     int port = getPort();
+
     char    buf[BUFFER_SIZE], // buffer to receive;
-            mes_buff[5]; // message buffer to send;
-
-    mes_buff[0] = getPlayerSide() + '0';
-    mes_buff[1] = '+';
-    mes_buff[2] = controlInput();
-    mes_buff[3] = '\0';
-
+            msg_buff[65]; // buffer message to send;
+    createMessage(msg_buff);
 
     cout << "\nServer Name Address: " << getAddress() << endl
          << "IPv4 Address: " << ip_address << endl
          << "Port: " << port << endl
-         << "Message: " << message << endl;
-
+         << "Message: " << msg_buff << endl;
+//    char * encrypted = encryption(msg_buff, key);
+//    cout << "Encrypted: " << encrypted << endl;
+//    char * decrypted = decrypt(encrypted, key);
+//    cout << "Decrypted: " << decrypted << endl;
+//
 
     struct sockaddr_in server; //IPV4
 
@@ -93,7 +106,7 @@ void Player::connection(){
     unsigned int len;
 
 
-    sendto(sock, (const char *) mes_buff, strlen(mes_buff) ,
+    sendto(sock, (const char *) msg_buff, strlen(msg_buff) ,
            MSG_CONFIRM, (const struct sockaddr *) &server,
            sizeof(server));
 //    cout << "message sent" << endl;

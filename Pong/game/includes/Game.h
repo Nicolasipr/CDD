@@ -5,16 +5,9 @@
 #ifndef PONG_GAME_H
 #define PONG_GAME_H
 
-class Player;
+
 class Board;
-class Ball;
 
-//#include "Board.h"
-//#include "Player.h"
-//#include "Ball.h"
-//#include "Menu.h"
-
-//typedef class Player Player;
 class Game {
 
 private:
@@ -22,10 +15,6 @@ private:
     const char * serverAddress = "localhost";
     int serverPort = 7777;
     bool serverStatus = false;
-//    Board   boardGrid;
-////    Player  *Player1,
-////            *Player2;
-//    Ball    *ball();
 
 public:
     Game();
@@ -34,6 +23,9 @@ public:
     // Tools
     void update(); // updates data from players
     char controlInput(); // handles keyboard input without terminal buffer
+    char* encryption( char* msg, char* key);
+    char* decrypt( char* msg, char* key);
+    char getRandomChar();
 
     // Server side
     char * getAddress();

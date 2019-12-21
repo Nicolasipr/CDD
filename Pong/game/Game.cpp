@@ -5,10 +5,11 @@
 #include "includes/Game.h"
 
 #include <iostream>
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <termios.h>
 
+#include <random>
 // Server side implementation of UDP client-server model
 #include <stdlib.h>
 #include <string.h>
@@ -34,6 +35,12 @@ Game::~Game() {
     cout << "Thanks for playing!";
 }
 
+/*
+ *  TOOLS
+ *  control Input -> It handles unbuffered pressed keyboard from terminal.
+ *  encryption  -> Basic message encryption. Avoids easy cheating on game
+ *  decryption  -> Basic decrypts message given
+ */
 char Game::controlInput() {
     struct termios old_tio, new_tio;
     unsigned char c;
@@ -56,6 +63,32 @@ char Game::controlInput() {
 
     return c;
 }
+
+char * Game::encryption(char* msg,  char* key) {
+
+    if (!strlen(key))
+        return msg;
+
+    for(long unsigned int i = 0; i < strlen(msg); i++){
+        msg[i] ^= key[i % strlen(key)]; // bitwise XOR operation
+    }
+    return msg;
+}
+char * Game::decrypt(char *msg, char* key) {
+    return encryption(msg, key); // reversed process
+}
+char Game::getRandomChar(){
+
+    std::default_random_engine generator(1234);
+    std::uniform_int_distribution<int> distribution(0,255);
+
+    srand(time(NULL));
+    char c = static_cast<unsigned char>( distribution(generator) );
+    return c;
+}
+/*
+ *
+ */
 int Game::getPort(){
     return  serverPort;
 }
@@ -107,7 +140,7 @@ void Game::setServer() {
         cout << "Server is running on: "
               << "\n\tAddress : " << getAddress()
               << "\n\t\t: " << ip_address
-              << "\n\tPort: " << getPort()
+              << "\n\tPort    : " << getPort()
               << "\nLogs here: \n\n";
 
         while(1){
@@ -118,6 +151,8 @@ void Game::setServer() {
             buffer[n] = '\0';
 
             printf("Client : %s\n", buffer);
+
+
             sendto(sockfd, (const char *)buffer, strlen(buffer),
                    MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
                    len);
