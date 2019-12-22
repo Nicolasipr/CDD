@@ -34,6 +34,9 @@ Game::Game() {
 Game::~Game() {
     cout << "Thanks for playing!";
 }
+int Game::getFPS() {
+    return FPS;
+}
 
 /*
  *  TOOLS
@@ -130,11 +133,14 @@ void Game::setServer() {
             perror("bind failed");
             exit(EXIT_FAILURE);
         }
+
+
         unsigned int len;
         int  n;
 
         len = sizeof(cliaddr); //len is value/resuslt
         serverStatus = true;
+
         system("clear");
 
         cout << "Server is running on: "
@@ -151,7 +157,7 @@ void Game::setServer() {
             buffer[n] = '\0';
 
             printf("Client : %s\n", buffer);
-
+            printf("Client decrypted : %s\n", decrypt(buffer, key) );
 
             sendto(sockfd, (const char *)buffer, strlen(buffer),
                    MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
