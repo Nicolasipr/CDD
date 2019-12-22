@@ -9,6 +9,7 @@ void initGame();
 void displayName();
 void displayMenu();
 void displayOptions();
+void displaySpeed();
 void displayAbout();
 void setSpeed();
 

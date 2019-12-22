@@ -5,8 +5,17 @@
 #ifndef PONG_CORE_H
 #define PONG_CORE_H
 
+#include "Player.h"
+#include "Board.h"
 
-class Core : {
+
+class Core : public Board, public Player {
+
+private:
+
+public:
+    Core();
+    ~Core();
 
 };
 

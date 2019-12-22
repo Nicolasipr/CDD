@@ -11,7 +11,7 @@
 class Game;
 //class Player;
 
-class Board : public Game{ // hybrid inheritance
+class Board : virtual public Game{ // hybrid inheritance (?
 
 private:
     // Board limits
@@ -19,23 +19,11 @@ private:
     const int height = 20;
     const int scoreBoard = 4;
 
-//  Player One Settings
-
-    char player1Name = ' ';
-    int playerOneScore = 0;
+////  Player One Settings
     const char* playerOnePaddle = "123456";
-    int playerOnePos = (height + scoreBoard)/2 - 2;
-    char p1UpKey = 'w';
-    char p1DownKey = 's';
 
-//    Player Two Settings
-
-    char player2Name = ' ';
-    int playerTwoScore = 0;
     const char* playerTwoPaddle = "123456";
-    int playerTwoPos = (height + scoreBoard)/2 - 2;
-    char p2UpKey = 'i';
-    char p2DownKey = 'k';
+
 
 //  Ball Settings
     char pongBall = 'O';
@@ -46,7 +34,6 @@ private:
 
 public:
     Board();
-    Board(char newName);
     ~Board();
 
     // Game itself
@@ -63,11 +50,7 @@ public:
     int getBallXDirection();
     int getBallYDirection();
 
-    // PLAYERS
-    void playerHandler();
-    int getPlayerOneYPos();
-    int getPlayerTwoYPos();
-    int getPlayerXPos(); //
+//    // PLAYERS
 
 };
 
