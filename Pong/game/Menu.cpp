@@ -6,6 +6,7 @@
 #include "includes/Board.h"
 #include "includes/Game.h"
 #include "includes/Player.h"
+#include "includes/Core.h"
 #include <iostream>
 #include <cstdlib>
 #include <chrono>
@@ -78,7 +79,7 @@ void displayOptions(){
                 cout << "Setting up Player 1";
 //                Player player();
                 while(1){
-                    Player(1).connection();
+                    Player();
 
                 }
                 break;
@@ -168,5 +169,5 @@ void initGame(){
                 break;
         }
     }while( (key = Pong.controlInput() ) != 'q');
-//    endwin();
+
 }

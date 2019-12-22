@@ -1,0 +1,6 @@
+game/includes/Board.h:49:5: style: Class 'Board' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    Board(char newName);
+    ^
+game/includes/Player.h:26:5: style: Class 'Player' has a constructor with 1 argument that is not explicit. [noExplicitConstructor]
+    Player(int newSide);
+    ^

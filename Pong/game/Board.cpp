@@ -12,13 +12,10 @@ using namespace std;
 
 // CONSTRUCTOR
 Board::Board() {
-//    cout << "Board has been created\n";
 }
 
 // DESTRUCTOR
 Board::~Board() {
-//    cout << "Board has been destroyed\n ";
-
 }
 
 /*
@@ -65,12 +62,12 @@ void Board::resetBall() {
  *
  * */
 
-int Board::getPlayerOneYPos() {
-    return playerOnePos;
-}
-int Board::getPlayerTwoYPos() {
-    return playerTwoPos;
-}
+//int Board::getPlayerOneYPos() {
+//    return playerOnePos;
+//}
+//int Board::getPlayerTwoYPos() {
+//    return playerTwoPos;
+//}
 
 /*
  *  GAME HANDLERS AND FUNCTIONS
@@ -142,13 +139,13 @@ void Board::ballHandler() {
     //      SCORING POINTS
     // P1
     if( x == (width - 1) ){
-        playerOneScore += 1;
+        setPlayerOneScore( getPlayerOneScore() + 1);
         resetBall();
         ballXDirection = -1; // left
     }
     // P2
     if( x == 1 ){
-        playerTwoScore += 1;
+        setPlayerTwoScore( getPlayerTwoScore() + 1 );
         resetBall();
         ballXDirection = 1; // right
     }
@@ -162,9 +159,10 @@ void Board::showBoard() {
     system("clear");
     int k1 = 0,
         k2 = 0;
+
     for (int i = 0; i <= (height + scoreBoard); i++){
         if ( i == scoreBoard/2) {
-            cout << "#\tPlayer 1 Score: "<< playerOneScore <<"  \t\t" << "  #\tPlayer 2 Score : " << playerTwoScore <<"\t\t";
+            cout << "#\tPlayer 1 Score: "<< getPlayerOneScore() <<"  \t\t" << "  #\tPlayer 2 Score : " << getPlayerTwoScore() <<"\t\t";
         }
 
         for ( int j = 0; j <= (width); j++){
@@ -239,10 +237,6 @@ void Board::gameHandler() {
         std::this_thread::sleep_for(std::chrono::milliseconds(getFPS()));
         ballHandler();
         showBoard();
-        playerHandler();
-    }while(true);
-}
 
-void Board::playerHandler() {
-
+    }while( getPlayerTwoScore() < 3 || getPlayerOneScore() < 3);
 }
