@@ -24,7 +24,7 @@ private:
     char player1Name = ' ';
     int playerOneScore = 0;
     const char* playerOnePaddle = "123456";
-    int playerOnePos = (height + scoreBoard)/2 - 3;
+    int playerOnePos = (height + scoreBoard)/2 - 2;
     char p1UpKey = 'w';
     char p1DownKey = 's';
 
@@ -33,7 +33,7 @@ private:
     char player2Name = ' ';
     int playerTwoScore = 0;
     const char* playerTwoPaddle = "123456";
-    int playerTwoPos = (height + scoreBoard)/2 - 3;
+    int playerTwoPos = (height + scoreBoard)/2 - 2;
     char p2UpKey = 'i';
     char p2DownKey = 'k';
 

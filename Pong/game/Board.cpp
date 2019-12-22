@@ -130,7 +130,7 @@ void Board::ballHandler() {
         }
         else if ( getPlayerTwoYPos() + 2 == y  || getPlayerTwoYPos() + 3 == y){ // middle segment
             ballYDirection = 0;
-            ballXDirection = 1;
+            ballXDirection = -1;
         }
         else if ( getPlayerTwoYPos() + 4 == y  || getPlayerTwoYPos() + 5 == y){ // last segment paddles
             ballYDirection = 1;
@@ -236,8 +236,13 @@ void Board::showBoard() {
 }
 void Board::gameHandler() {
     do{
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(getFPS()));
         ballHandler();
         showBoard();
+        playerHandler();
     }while(true);
+}
+
+void Board::playerHandler() {
+
 }
