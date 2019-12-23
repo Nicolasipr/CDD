@@ -16,6 +16,7 @@
 using namespace std;
 
 Game Pong;
+Core core;
 
 void displayName(){
     system("clear");
@@ -79,8 +80,8 @@ void displayOptions(){
                 cout << "Setting up Player 1";
 //                Player player();
                 while(1){
-                    Player();
-
+//                    Player();
+                    core.playerHandler();
                 }
                 break;
             case('3'):
@@ -134,7 +135,7 @@ void displayAbout(){
 void initGame(){
 
     displayName();
-    Board Court;
+//    Board Court;
 //    Game Pong;
     char key;
     do{
@@ -147,7 +148,7 @@ void initGame(){
                 if(1){
                     system("clear");
                     cout << "Entering into the game";
-                    Court.gameHandler();
+//                    Court.gameHandler();
                 }
                 else{
                     cout << "Server hasn't been set yet";
