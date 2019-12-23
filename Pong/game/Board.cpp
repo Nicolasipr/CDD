@@ -7,6 +7,8 @@
 #include <chrono>
 #include <thread>
 #include <iostream>
+#include <stdio.h>
+#include<stdlib.h>
 
 using namespace std;
 
@@ -62,12 +64,6 @@ void Board::resetBall() {
  *
  * */
 
-//int Board::getPlayerOneYPos() {
-//    return playerOnePos;
-//}
-//int Board::getPlayerTwoYPos() {
-//    return playerTwoPos;
-//}
 
 /*
  *  GAME HANDLERS AND FUNCTIONS
@@ -81,13 +77,15 @@ void Board::resetBall() {
 
 
 
-void Board::ballHandler() {
+void Board::ballHandler(int p1_pos, int p2_pos) {
 
     int board = height + scoreBoard,
         x = getXPos(),
         y = getYPos(),
         yDir  = getBallYDirection(),
         xDir  = getBallXDirection();
+        setPlayerOnePos(p1_pos);
+        setPlayerTwoPos(p2_pos);
 
     //      WALLS
     // upper wall
@@ -154,15 +152,16 @@ void Board::ballHandler() {
         nextY = getYPos() + ballYDirection;
     setBallPos(nextX, nextY);
 }
-void Board::showBoard() {
+void Board::showBoard(int p1_pos, int p2_pos) {
 
     system("clear");
+    fflush(stdin);
     int k1 = 0,
         k2 = 0;
 
     for (int i = 0; i <= (height + scoreBoard); i++){
         if ( i == scoreBoard/2) {
-            cout << "#\tPlayer 1 Score: "<< getPlayerOneScore() <<"  \t\t" << "  #\tPlayer 2 Score : " << getPlayerTwoScore() <<"\t\t";
+            cout << "#\tPlayer 1 Score: "<< getPlayerOneScore() <<"  \t\t" << "  #\tPlayer 2 Score : " << getPlayerTwoScore() <<"\t\t  ";
         }
 
         for ( int j = 0; j <= (width); j++){
@@ -196,7 +195,7 @@ void Board::showBoard() {
 
              // players
            else if( j == 4){
-                if(  i >= getPlayerOneYPos() && (getPlayerOneYPos() + 6) <= (height + scoreBoard - 1 ) && i > scoreBoard){
+                if(  i >= p1_pos && (p1_pos + 6) <= (height + scoreBoard) && i > scoreBoard){
                     if( k1 < 6) {
                         cout << playerOnePaddle[k1];
                         k1++;
@@ -211,7 +210,7 @@ void Board::showBoard() {
            }
 
           else if( (width - j) == 4){
-                if(  i >= getPlayerTwoYPos() && (getPlayerTwoYPos() + 6) <= (height + scoreBoard - 1 ) && i > scoreBoard){
+                if(  i >= p2_pos && (p2_pos + 6) <= (height + scoreBoard) && i > scoreBoard){
                     if( k2 < 6) {
                         cout << playerTwoPaddle[k2];
                         k2++;
@@ -230,13 +229,14 @@ void Board::showBoard() {
         }
         cout << endl;
     }
+    fflush(stdin);
 
 }
 void Board::gameHandler() {
     do{
         std::this_thread::sleep_for(std::chrono::milliseconds(getFPS()));
-        ballHandler();
-        showBoard();
+//        ballHandler();
+//        showBoard();
 
     }while( getPlayerTwoScore() < 3 || getPlayerOneScore() < 3);
 }
