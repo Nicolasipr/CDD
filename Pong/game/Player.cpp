@@ -4,6 +4,8 @@
 
 #include "includes/Player.h"
 #include <iostream>
+#include <stdio.h>
+#include<stdlib.h>
 //socket
 #include <bits/stdc++.h>
 #include <arpa/inet.h>
@@ -22,22 +24,12 @@ Player::Player() {
     connection();
 }
 Player::~Player() {
-//    cout << "Player " << playerSide << " Has ben  destroyed!";
-//    closeConnection();
-}
-int Player::getPaddleYPos() {
-    return paddleYPos;
-}
-int Player::getPaddleXPos() {
-    return paddleXPos;
-}
-int Player::getPlayerSide(){
-    return playerSide;
-}
-char * Player::getPaddle() {
-    return paddle;
+    closeConnection();
 }
 
+int Player::getPlayerSide() {
+    return playerSide;
+}
 /*
  *  Utilities
  * createMessage() ->
@@ -45,7 +37,6 @@ char * Player::getPaddle() {
  *
  */
 char* Player::createMessage( char * mes_buff) {
-
 
     mes_buff[0] = getPlayerSide() + '0';
     mes_buff[1] = '+';
@@ -61,8 +52,11 @@ char* Player::createMessage( char * mes_buff) {
 
 void Player::recvHandler(char * msg) {
 
+    system("clear");
+    fflush(stdin);
 
-    cout << "\nHandling msg Decrypt : " << msg;
+    encryption(msg, key);
+
     /*
      *  recv msg format
      *  While Connection Request > "token, side, Game Speed"
@@ -70,8 +64,10 @@ void Player::recvHandler(char * msg) {
      *
      */
     // Connection request Handler
+    fflush(stdin);
+
     if(msg != NULL){
-        decrypt(msg, key);
+
         if( msg[0] == '?') {
 
             setPlayers(); // updates total of players
@@ -79,18 +75,97 @@ void Player::recvHandler(char * msg) {
 
         }
         // Playing data Handler
-        if( msg[0] == getPlayerSide() - '0') {
+        if( msg[0] == '!'){
 
+            int i = 1,
+                temp = 0;
+            char * aux = msg;
+            while( aux[i] != '\0'){
+                if (aux[i] != '+' && temp < 100) {
+                    if( aux[i] - '0' >= 0 && aux[i] - '0' <= 9 ){
+                        temp *= 10;
+                        temp += aux[i] - '0';
+                    }
+
+                }
+                else{
+                    setPlayerOnePos(temp);
+                    temp = 0;
+
+                }
+                i++;
+            }
+            setPlayerTwoPos(temp);
         }
+
     }
-    else
-        return ;
-
-
+    else{
+        encryption(msg, key);
+        return;
+    }
 
 }
+void Player::sendMessage() {
+
+    char rcv_buf[BUFFER_SIZE], // buffer to receive;
+         msg_buff[65]; // buffer message to send;
+
+    createMessage(msg_buff);
+
+
+    sendto(socket_fd, (const char *) msg_buff, strlen(msg_buff) ,
+                   MSG_CONFIRM, (const struct sockaddr *) &server,
+                   sizeof(server));
+
+    unsigned int len;
+    fflush(stdin);
+    if ( recvfrom(socket_fd, (char *) rcv_buf, BUFFER_SIZE,
+                     0, (struct sockaddr *) &server,
+                     &len) < 0 ) {
+        len = 1;
+    }
+
+    rcv_buf[len] = '\0';
+
+    recvHandler(rcv_buf);
+
+}
+
+void Player::joinGame() {
+
+    cout << "Joining Game ...";
+
+    char join[BUFFER_SIZE],
+            join_request[10] = {'?','R','e','q','u','e','s','t','\0'};
+
+    encryption(join_request, key);
+
+    sendto(socket_fd, (const char *) join_request, strlen(join_request) ,
+           0 , (const struct sockaddr *) &server,
+           sizeof(server));
+
+    unsigned int join_size;
+
+    recvfrom(socket_fd, (char *) join, BUFFER_SIZE,
+             MSG_DONTWAIT, (struct sockaddr *) &server,
+             &join_size);
+
+    fflush(stdin);
+    join[join_size] = '\0';
+
+    if (join != NULL){
+        setServerStatus(true);
+    }
+    recvHandler(join);
+}
+void Player::closeConnection() {
+    close(socket_fd);
+}
+
+
 void Player::connection(){
 
+    // Figures out if connection is valid or not
     hostent * record = gethostbyname(getAddress());
 
     if(record == NULL){
@@ -103,107 +178,27 @@ void Player::connection(){
 
     int port = getPort();
 
-    char    rcv_buf[BUFFER_SIZE], // buffer to receive;
-            msg_buff[65]; // buffer message to send;
-
     cout << "\nServer Name Address: " << getAddress() << endl
          << "IPv4 Address: " << ip_address << endl
          << "Port: " << port << endl;
 
-    struct sockaddr_in server; //IPV4
-
-
-    // udp connection
+    // sets up UDP connection
 
     //  Socket
+    socket_fd = socket(AF_INET, SOCK_DGRAM, 0); // 0 means default, AF_NET = IPV4 & SOCK_STREAM = TCP
 
-    int sock = socket(AF_INET, SOCK_DGRAM, 0); // 0 means default, AF_NET = IPV4 & SOCK_DGRAM = TCP
-
-
-    if(sock < 0){
+    if(socket_fd < 0){
         cout << "Error while opening socket";
         exit(1);
     }
-    // connection
-
-    memset(&server, 0, sizeof (server));
+    // Free and sets server address  information
+    memset(&server, '\0', sizeof (server));
 
     server.sin_family = AF_INET;
     server.sin_port = htons(port);
     server.sin_addr.s_addr = htonl(INADDR_ANY);
+//    server.sin_addr.s_addr = inet_addr("127.0.0.1");
+
     inet_pton(AF_INET, ip_address, &server.sin_addr);
 
-    unsigned int len;
-
-    // Joining game
-    cout << "Joining Game ...";
-    char join[BUFFER_SIZE],
-         join_request[10] = {'?','R','e','q','u','e','s','t','\0'};
-    encryption(join_request, key);
-
-    sendto(sock, (const char *) join_request, strlen(join_request) ,
-           MSG_CONFIRM, (const struct sockaddr *) &server,
-           sizeof(server));
-
-    unsigned int join_size;
-
-    recvfrom(sock, (char *) join, BUFFER_SIZE,
-             MSG_WAITALL, (struct sockaddr *) &server,
-             &join_size);
-
-    join[join_size] = '\0';
-
-    if (join != NULL){
-        setServerStatus(true);
-    }
-    recvHandler(join);
-    cout << "\n\nJOIN :" << join ;
-    auto start = chrono::steady_clock::now();
-    auto max_time = 5;
-
-    while( 1){
-
-        auto current = chrono::steady_clock::now();
-        system("clear");
-        cout << "\nWaiting for other players..." << endl;
-
-        recvfrom(sock, (char *) join, BUFFER_SIZE,
-                 MSG_DONTWAIT, (struct sockaddr *) &server,
-                 &len);
-
-        cout << "\n Elapsed time: " << chrono::duration_cast<chrono::seconds>(current - start).count() << " [s]" << endl;
-
-
-        if ( chrono::duration_cast<chrono::seconds>(current - start).count() >= max_time ){
-            cout << "You've won!" << endl
-                 << "Sadly, because nobody wants to play with you :(" << endl;
-            break;
-        }
-            recvHandler(join);
-
-        while( getPlayers() >=2 ){
-            cout << "\nEntering the Game..." << endl;
-            createMessage(msg_buff);
-            cout << "Client " << getPlayerSide() << " : " << decrypt(msg_buff,key); encryption(msg_buff, key);
-
-
-            sendto(sock, (const char *) msg_buff, strlen(msg_buff) ,
-                   MSG_CONFIRM, (const struct sockaddr *) &server,
-                   sizeof(server));
-
-            recvfrom(sock, (char *) rcv_buf, BUFFER_SIZE,
-                     MSG_WAITALL, (struct sockaddr *) &server,
-                     &len);
-
-            // Handling rcv_buff
-            rcv_buf[len] = '\0';
-            printf("\nServer: %s\n", decrypt(rcv_buf, key));
-
-        }
-
-    }
-
-
-
-    close(sock);
 }
