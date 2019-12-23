@@ -17,6 +17,8 @@ public:
     Core();
     ~Core();
 
+    void playerHandler();
+
 };
 
 
