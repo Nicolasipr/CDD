@@ -12,6 +12,7 @@
 #include <random>
 // Server side implementation of UDP client-server model
 #include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -22,7 +23,7 @@
 #define PORT	 7777
 #define BUFFER_SIZE 1024
 #define MAX_CLIENTS 2
-
+#define esc 27
 
 using namespace std;
 
@@ -69,7 +70,13 @@ int Game::getPlayerOneScore() {
 int Game::getPlayerTwoScore(){
     return playerTwoScore;
 }
+void Game::setPlayerOnePos(int n_pos) {
+    playerOnePos = n_pos;
+}
 
+void Game::setPlayerTwoPos(int n_pos) {
+    playerTwoPos = n_pos;
+}
 
 void Game::setPlayerOneScore(int n_score) {
     playerOneScore = n_score;
@@ -112,10 +119,13 @@ char * Game::encryption(char* msg,  char* key) {
 
     if (!strlen(key))
         return msg;
-
+    if (!strlen(msg))
+        return msg;
     for(long unsigned int i = 0; i < strlen(msg); i++){
+
         msg[i] ^= key[i % strlen(key)]; // bitwise XOR operation
     }
+
     return msg;
 }
 char * Game::decrypt(char *msg, char* key) {
@@ -131,8 +141,6 @@ char Game::getRandomChar(){
     return c;
 }
 char* Game::handlingMessage(char * msg, char * resp) {
-    cout << "\nmsg 1 :" << msg;
-        cout << "\nRESP 1 :" << resp;
 
     if( msg[0] == '?' || msg[1] == '?') {
         setPlayers(); // updates total of players
@@ -141,7 +149,7 @@ char* Game::handlingMessage(char * msg, char * resp) {
         resp[2] = '+';
         resp[3] = gameMode + '0';
         resp[4] = '\0';
-        cout << "\nRESP 1.1 :" << resp;
+
         return encryption(resp, key);
     }
     else if (msg[0] == '1' || msg[0] == '2'){
@@ -150,7 +158,7 @@ char* Game::handlingMessage(char * msg, char * resp) {
                 if(playerOnePos >= scoreBoard + 2)
                     playerOnePos--;
             }
-            if(p2DownKey == msg[2])
+            if(p1DownKey == msg[2])
                 if(playerOnePos <= height + scoreBoard - 7)
                     playerOnePos++;
         }
@@ -163,25 +171,29 @@ char* Game::handlingMessage(char * msg, char * resp) {
                 if(playerTwoPos <= height + scoreBoard - 7)
                     playerTwoPos++;
         }
-        resp[0] = '+';
+        resp[0] = '!';
         if(playerOnePos >= 10){
-            resp[1] = playerOnePos/10 + '0';
-            resp[2] = playerOnePos%10 + '0';
+            resp[1] = getPlayerOneYPos()/10 + '0';
+            resp[2] = getPlayerOneYPos()%10 + '0';
             resp[3] = '+';
             if(playerTwoPos >= 10){
-                resp[4] = playerOnePos/10 + '0';
-                resp[5] = playerOnePos%10 + '0';
+                resp[4] =  getPlayerTwoYPos()/10 + '0';
+                resp[5] =  getPlayerTwoYPos()%10 + '0';
             }
             else
-                resp[4] = playerTwoPos + '0';
+                resp[4] = getPlayerTwoYPos() + '0';
         }
-        else
-            resp[1] = playerOnePos + '0';
-        cout << "resp : " << resp;
+        else {
+            resp[1] =  getPlayerOneYPos() + '0';
+            resp[2] = '+';
+            resp[3] =  getPlayerTwoYPos() + '0';
+
+        }
+
+//        cout << "resp : " << resp;
     }
     else
         return encryption(msg, key);
-    cout << "\nRESP 2 :" << resp;
     return encryption(resp, key);
 
 }
@@ -195,12 +207,11 @@ char * Game::getAddress() {
     return (char *) serverAddress;
 }
 void Game::setServer() {
-        int sockfd;
 
+        int sockfd, ret;
         struct sockaddr_in servaddr, cliaddr;
-//                *cliaddr[MAX_CLIENTS];
 
-        // checks address ip
+    // checks address ip
         hostent * record = gethostbyname(getAddress());
         if(record == NULL){
             cout <<"\n" << getAddress() <<" is unavailable";
@@ -217,13 +228,6 @@ void Game::setServer() {
 
         memset(&servaddr, 0, sizeof(servaddr));
         memset(&cliaddr, 0, sizeof(cliaddr));
-
-//        for(int i = 0; i < MAX_CLIENTS; i++){
-//            cliaddr[i] = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in));
-//            memset(&cliaddr[i], 0, sizeof(cliaddr[i]));
-//        }
-
-
         // Filling server information
         servaddr.sin_family = AF_INET; // IPv4
         servaddr.sin_addr.s_addr = INADDR_ANY;
@@ -231,19 +235,24 @@ void Game::setServer() {
 
         // Bind the socket with the server address
         if ( bind(sockfd, (const struct sockaddr *)&servaddr,
-                  sizeof(servaddr)) < 0 )
-        {
+                  sizeof(servaddr)) < 0  ){
             perror("bind failed");
             exit(EXIT_FAILURE);
         }
-
+//        if(listen(sockfd, 3) == 0){
+//            cout << "Listening....\n";
+//        }
+//        else {
+//            cout << "Error in binding.\n";
+//        }
 
         unsigned int len;
+        len = sizeof(servaddr);
 
-        len = sizeof(cliaddr); //len is value/resuslt
-        serverStatus = true;
+//        serverStatus = true;
 
         system("clear");
+
         char buffer[BUFFER_SIZE],
             resp[BUFFER_SIZE];
 
@@ -251,12 +260,10 @@ void Game::setServer() {
               << "\n\tAddress : " << getAddress()
               << "\n\t\t: " << ip_address
               << "\n\tPort    : " << getPort()
-              << "\n\tSpeed   :" << getFPS()
+              << "\n\tSpeed   : " << getFPS()
               << "\nLogs here: \n\n";
 
-
-
-        while(1){
+    while(1){
 
             recvfrom(sockfd, (char *)buffer, BUFFER_SIZE,
                      MSG_WAITALL, ( struct sockaddr *) &cliaddr,
@@ -264,47 +271,23 @@ void Game::setServer() {
 
             buffer[len] = '\0';
 
-//
-            printf("Client : %s\n", buffer);
+            printf("\n\nClient : %s", buffer);
             printf("Client decrypted : %s\n", decrypt(buffer, key) );
-            cout << "\nHandled message :" << handlingMessage(buffer, resp);
-            printf("\nServer : %s\n", resp);
-            printf("\nServer decrypted : %s\n", decrypt(resp, key) );
+            fflush(stdin);
+            cout << "Handled message :" << handlingMessage(buffer, resp);
+            cout << "\n Server :" << resp;
+            fflush(stdin);
+            printf("\nServer : %s", resp);
+            fflush(stdin);
+            printf("\nServer decrypted : %s", decrypt(resp, key) );
                 encryption(resp, key);
-
+            cout << "\nP1 POS : "  << getPlayerOneYPos();
+            cout << "\nP2 POS : "  << getPlayerTwoYPos();
+            fflush(stdin);
             sendto(sockfd, (const char *)resp, strlen(resp),
                    MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
                    len);
 
         }
-//            for (int i = 0; i < MAX_CLIENTS; ++i) {
-//                len = sizeof(cliaddr[i]); //len is value/resuslt
-//                recvfrom(sockfd, (char *)buffer, BUFFER_SIZE,
-//                         MSG_WAITALL, ( struct sockaddr *) cliaddr[i],
-//                         &len);
-//                buffer[len] = '\0';
-//                printf("Client : %s\n", buffer);
-//                printf("Client decrypted : %s\n", decrypt(buffer, key) );
-//                printf("Client : %s\n", buffer);
-//
-//
-//                printf("Server : %s\n", encryption(resp, key));
-//                printf("Server decrypted : %s\n", decrypt(resp, key) );
-//                encryption(resp, key);
-//                for (int j = 0; j < MAX_CLIENTS;  ++j) {
-//                    len = sizeof(cliaddr[j]);
-//                    cout << "hola\n";
-//                    sendto(sockfd, (const char *)resp, strlen(resp),
-//                           MSG_CONFIRM, (const struct sockaddr *) cliaddr[j],
-//                           len);
-//                }
-
-//            }
-//
-//
-//
-//        }
-
-
 
 }

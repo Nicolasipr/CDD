@@ -34,10 +34,11 @@ private:
 
     char player2Name = ' ';
     int playerTwoScore = 0;
-//    const char* playerTwoPaddle = "123456";
     int playerTwoPos = (height + scoreBoard)/2 - 2;
     char p2UpKey = 'i';
     char p2DownKey = 'k';
+
+    //
 
     char key[31] = "@PoNg_CdD_iN_C++_HaVe_FuN!@";
 
@@ -57,14 +58,14 @@ public:
     int getPlayerTwoScore();
     void setPlayerTwoScore(int);
 
-
-
-    void playerHandler();
     int getPlayerOneYPos();
+    void setPlayerOnePos(int);
     int getPlayerTwoYPos();
+    void setPlayerTwoPos(int);
+
     int getPlayerXPos(); //
 
-    // Tools
+    // TOOLS
     void update(); // updates data from players
     char controlInput(); // handles keyboard input without terminal buffer
     char* encryption( char* msg, char* key);
