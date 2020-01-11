@@ -19,38 +19,55 @@ Core::Core() {
 Core::~Core() {
 
 }
+
+void updatesScore(void* p, int p1Score, int p2Score ){
+    Game* a = (Game *)p;
+
+    if(a->getPlayerOneScore() != p1Score )
+        a->setPlayerOneScore(p1Score);
+    if(a->getPlayerTwoScore() != p2Score )
+        a->setPlayerTwoScore(p2Score);
+
+
+    p=a;
+
+}
 void Core::serverHandler() {
     Game Server;
+    Server.setAddress( getAddress() );
+    Server.setPort( getPort() );
     Server.setServerUDP();
 
     // threads init
     pthread_t recv_thread,
-            recvP2_thread,
-            send_thread;
-//            sendP2_thread;
+            recvP2_thread;
+
     pthread_create(&recv_thread, NULL, Server.rcvMessageHelper,&Server);
     pthread_create(&recvP2_thread, NULL, Server.rcvMessageHelperP2,&Server);
-//    pthread_create(&send_thread, NULL, Server.sendMessageHelper,&Server);
+
     // threads for recv and sending data
-    int i = 0;
+
     while(getPlayerOneScore() < 3 && getPlayerTwoScore() < 3) {
-//        cout << "\n Iteration Number > " << i++;
 
         ballHandler( Server.getPlayerOneYPos(), Server.getPlayerTwoYPos() );
         Server.setBallXPos( getBallXPos() );
         Server.setBallYPos( getBallYPos() );
+
+        cout << "Core P1: " << getPlayerOneScore() << endl;
+        cout << "Core P2: " << getPlayerTwoScore() << endl;
+        Server.setPlayerOneScore( getPlayerOneScore());
+        Server.setPlayerTwoScore( getPlayerTwoScore());
         std::this_thread::sleep_for(std::chrono::milliseconds(getFPS()));
     }
 
     // join threads
     pthread_join(recv_thread, NULL);
     pthread_join(recvP2_thread, NULL);
-//    pthread_join(send_thread, NULL);
-
 
 }
 
 void Core::playerHandler() {
+
     Player Client;
     Client.connectionUDP();
     Client.joinGame();
@@ -90,18 +107,26 @@ void Core::playerHandler() {
         fflush(stdout);
         setBallYPos(Client.getBallYPos());
         setBallXPos(Client.getBallXPos());
-        ballHandler( Client.getPlayerOneYPos(), Client.getPlayerTwoYPos() );
+        setPlayerOneScore( Client.getPlayerOneScore());
+        setPlayerTwoScore( Client.getPlayerTwoScore());
 
+        ballHandler( Client.getPlayerOneYPos(), Client.getPlayerTwoYPos() );
         showBoard( Client.getPlayerOneYPos(), Client.getPlayerTwoYPos() );
 
+    cout << "Client P1: " << Client.getPlayerOneScore() << endl;
+    cout << "Client P2: " << Client.getPlayerTwoScore() << endl;
+        cout << "Core P1: " << getPlayerOneScore() << endl;
+        cout << "Core P2: " << getPlayerTwoScore() << endl;
+
+
         std::cout.flush();
-//        std::this_thread::sleep_for(std::chrono::milliseconds(getFPS()));
 
         fflush(NULL);
     }
     // join threads
     pthread_join(listen_thread, NULL);
     pthread_join(p1Send_thread, NULL);
+
     // closes socket connection;
     Client.~Player();
     initGame();

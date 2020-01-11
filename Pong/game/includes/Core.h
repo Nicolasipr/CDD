@@ -19,7 +19,7 @@ public:
 
     void playerHandler();
     void serverHandler();
-
+    void *updatesScore(void *, int , int);
 
 };
 
