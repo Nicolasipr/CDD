@@ -29,8 +29,8 @@ static pthread_mutex_t player_mutex; // avoids threads interruption.
 using namespace std;
 
 Player::Player() {
-//    connection();
 }
+
 Player::~Player() {
     closeConnection();
 }
@@ -49,12 +49,13 @@ void *Player::listenServerHelper(void *p) {
 
     while(a->getPlayerOneScore() < 3 && a->getPlayerTwoScore() < 3){
         pthread_mutex_lock(&player_mutex); //  keeps rcv Message under control
-//        a->sendToServer();
         a->listenServer(buffer);
         p=a;
         pthread_mutex_unlock(&player_mutex);
     }
-
+    pthread_exit(NULL);
+    free(a);
+    delete(a);
     return NULL;
 }
 void Player::listenServer(char *buff) {
@@ -83,7 +84,9 @@ void *Player::sendToServerHelper(void *p){
         a->sendToServer();
         p=a;
     }
-
+    pthread_exit(NULL);
+    free(a);
+    delete(a);
     return NULL;
 }
 void Player::sendToServer(){
@@ -100,7 +103,6 @@ void Player::sendToServer(){
         std::this_thread::sleep_for(std::chrono::milliseconds(166)); // 6pps
 
     }
-
 
 }
 
