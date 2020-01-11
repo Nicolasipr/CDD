@@ -25,14 +25,19 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+/*
+ *  GLOBAL VARIABLES
+ */
+
 #define PORT	 7777
 #define BUFFER_SIZE 1024
 #define MAX_CLIENTS 2
-#define esc 27
-
-//static pthread_mutex_t mutex; // avoids threads interruption.
 
 using namespace std;
+
+/*
+ * GAME INITIALIZATION AND CONFIGURATION
+ */
 
 Game::Game() {
 
@@ -74,7 +79,23 @@ void Game::setAddress(char *n_address) {
 }
 
 /*
- *  PLAYERS
+ *  ALL METHODS REGARDING PLAYER DATA, INPUTS AND
+ *  PLACEMENT IN THE GAME:
+ *
+ *          - getPlayers(); -> Get Player Quantity
+ *          - void setPlayers(); ->
+ *          - getPlayerOneScore(); ->
+ *          - void setPlayerOneScore(int); ->
+ *          - int getPlayerTwoScore(); ->
+ *          - void setPlayerTwoScore(int); ->
+ *          - int getPlayerOneYPos(); ->
+ *          - void setPlayerOnePos(int); ->
+ *          - int getPlayerTwoYPos();  ->
+ *          - void setPlayerTwoPos(int); ->
+ *          - int getPlayer1XPos();  ->
+ *          - int getPlayer2XPos();  ->
+
+ *
  */
 
 int Game::getPlayers() {
@@ -116,8 +137,15 @@ int Game::getPlayer1XPos() {
 int Game::getPlayer2XPos() {
     return (width - 4 );
 }
+
 /*
- *  BALL
+ *  ALL BALL METHODS USED TO HANDLING MOVEMENT AND SCORES
+ *  Ball Position:
+ *              X pos
+ *              Y Pos
+ *  Ball Direction
+ *              X Pos
+ *              Y Pos
  */
 
 int Game::getBallXPos(){
@@ -156,7 +184,15 @@ void Game::setBallYDir(int n_yDir){
  *  decryption  -> Basic decrypts message given
  */
 
-//           P1 HANDLING MESSAGE
+
+/*
+ *  P1 THREAD FOR RECEIVING DATA AND SEND IT BACK
+ *  rcvMessageHelper() -> Creates a pointer to Game Class
+ *                        that can be used as a thread.
+ *  rcvMessageP1() -> Retrieves the data from server and socket given of P2
+ *                  then handles its information and updates the game back.
+ *                  Using Deterministic Lockstep
+ */
 void *Game::rcvMessageHelper(void *p){
     Game *a = (Game *)p; // cast *p to Game Class type
 
@@ -167,26 +203,21 @@ void *Game::rcvMessageHelper(void *p){
 
         a->rcvMessage(buffer, resp);
         a->sendMessageTo(a->p1Sock, a->p1Client, resp);
-//        a->sendMessageTo(a->p2Sock, a->p2Client, resp);
-//        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        p=a;
+        p=a; // updates back our class if necessary.
 
     }
-//    cout << "\nHello From Server Receiver Handler Ending ";
-
+    free(a);
+    delete(a);
     return NULL;
 }
 
 char* Game::rcvMessage(char * buffer, char * resp) {
-//    pthread_mutex_lock(&mutex); //  keeps rcv Message under control
-
     unsigned int len = sizeof(servaddr);
 
     if ( recvfrom(sockfd, (char *)buffer, BUFFER_SIZE,
                   0, ( struct sockaddr *) &p1Client,
                   &len) < 0 ) {
         perror("recvfrom");
-//        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
     else{
         buffer[len] = '\0';
@@ -202,15 +233,19 @@ char* Game::rcvMessage(char * buffer, char * resp) {
         cout << "\nServer decrypted :  " << decrypt(resp, key) << endl;
         std::cout.flush();
     }
-
-//    pthread_mutex_unlock(&mutex);
     return encryption(resp, key);
 }
 
 
-//      P2 HANDLING MESSAGE
+/*
+ *  P2 THREAD FOR RECEIVING DATA AND SEND IT BACK
+ *  rcvMessageHelper() -> Creates a pointer to Game Class
+ *                        that can be used as a thread.
+ *  rcvMessageP2() -> Retrieves the data from server and socket given of P2
+ *                  then handles its information and updates the game back.
+ *                  Using Deterministic Lockstep
+ */
 char* Game::rcvMessageP2(char * buffer, char * resp) {
-//    pthread_mutex_lock(&mutex); //  keeps rcv Message under control
 
     unsigned int len = sizeof(servaddr);
 
@@ -218,7 +253,6 @@ char* Game::rcvMessageP2(char * buffer, char * resp) {
                   0, ( struct sockaddr *) &p2Client,
              &len) < 0 ) {
         perror("recvfrom");
-//        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
     else{
         buffer[len] = '\0';
@@ -235,9 +269,9 @@ char* Game::rcvMessageP2(char * buffer, char * resp) {
         std::cout.flush();
     }
 
-//    pthread_mutex_unlock(&mutex);
     return encryption(resp, key);
 }
+
 void *Game::rcvMessageHelperP2(void *p){
     Game *a = (Game *)p; // cast *p to Game Class type
 
@@ -247,33 +281,18 @@ void *Game::rcvMessageHelperP2(void *p){
     while( a->getPlayerOneScore() < 3 && a->getPlayerTwoScore() < 3){
 
         a->rcvMessageP2(buffer, resp);
-//        a->sendMessageTo(a->p1Sock, a->p1Client, resp);
         a->sendMessageTo(a->p2Sock, a->p2Client, resp);
-//        std::this_thread::sleep_for(std::chrono::milliseconds(166));
         p=a;
 
     }
-//    cout << "\nHello From Server Receiver Handler Ending ";
 
+    free(a);
+    delete(a);
     return NULL;
 }
 
 
-void *Game::sendMessageHelper(void *p){
 
-    Game *a = (Game *)p; // cast *p to Game Class type
-
-    char buffer[BUFFER_SIZE],
-            resp[128];
-
-    while(a->getPlayerOneScore() < 3 && a->getPlayerTwoScore() < 3){
-
-        a->handlingMessage(buffer, resp);
-        a->sendMessageTo(a->p1Sock, a->p1Client, resp);
-        p=a;
-    }
-    return NULL;
-}
 void Game::sendMessageTo(int id_socket, struct sockaddr_in client, char * resp) {
 
     if (  sendto(sockfd, (const char *)resp, strlen(resp),
@@ -286,6 +305,17 @@ void Game::sendMessageTo(int id_socket, struct sockaddr_in client, char * resp) 
         std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 6 ppm
     }
 }
+
+/*
+ * TOOLS FOR MAKING THINGS EASIER
+ *     char controlInput(); // handles keyboard input without terminal buffer (sync)
+ *     int kbhit(void); -> Handles keyboard async (sort of)
+ *     char* encryption( char* msg, char* key); -> Encrypts data avoiding sending plain text trough network
+ *     char* decrypt( char* msg, char* key);   -> decrypts information
+ *     char getRandomChar();                    -> fills datagram with junk data
+ *     void setDifficulty(int n_difficulty);    -> changes Game speed
+ *
+ */
 int Game::kbhit(void){
     fflush(stdin);
     fflush(stdout);
@@ -617,11 +647,159 @@ char* Game::handlingMessage(char * msg, char * resp) {
  *
  */
 
+/*
+ *  TYPE OF CONNECTIONS  AND SERVER SETTINGS
+ *  CURRENT MASTER IS UPD
+ *  TCP IS HERE FOR TESTING PURPOSES ONLY
+ */
+
+
+void Game::setServerUDP() {
+
+
+    // checks address ip
+    hostent * record = gethostbyname(getAddress());
+    if(record == NULL){
+        cout <<"\n" << getAddress() <<" is unavailable";
+        exit(1);
+    }
+    in_addr * addressHost = (in_addr * )record->h_addr;
+    char* ip_address = inet_ntoa(* addressHost);
+
+
+    // Creating socket file descriptor
+    if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+//            perror("socket creation failed");
+        perror("sendto");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&servaddr, 0, sizeof(servaddr));
+    memset(&cliaddr, 0, sizeof(cliaddr));
+
+    // Filling server information
+    servaddr.sin_family = AF_INET; // IPv4
+    memcpy(&servaddr.sin_addr, record->h_addr_list[0], record->h_length);
+//        servaddr.sin_addr.s_addr = INADDR_ANY;
+    servaddr.sin_port = htons(PORT);
+
+    // Bind the socket with the server address
+    if ( bind(sockfd, (const struct sockaddr *)&servaddr,
+              sizeof(servaddr)) < 0  ){
+//            perror("bind failed");
+        perror("bind");
+        exit(EXIT_FAILURE);
+    }
+
+    unsigned int len;
+    len = sizeof(servaddr);
+
+
+    system("clear");
+
+    char buffer[BUFFER_SIZE],
+            resp[32];
+    int n;
+    unsigned int  m = sizeof(n);
+    getsockopt(sockfd,SOL_SOCKET,SO_RCVBUF,(void *)&n, &m);
+    cout << "\nSocket size = " << n << endl;
+
+    cout << "Server is running on: "
+         << "\n\tAddress : " << getAddress()
+         << "\n\t\t: " << ip_address
+         << "\n\t\t: " << inet_ntoa(servaddr.sin_addr)
+         << "\n\tPort    : " << getPort()
+         << "\n\tPort    : " << ntohs(servaddr.sin_port)
+         << "\n\tSpeed   : " << getFPS()
+         << "\nLogs here: \n\n";
+
+    /*
+     *  SETS UDP BUFFER (SENDER AND RECV) HIGHER
+     */
+    int lennn, trysize, gotsize, err;
+    lennn = sizeof(int);
+    trysize = 1048576+32768;
+    do {
+        trysize -= 32768;
+        setsockopt(sockfd,SOL_SOCKET,SO_SNDBUF,(char*)&trysize,lennn);
+        err = getsockopt(sockfd,SOL_SOCKET,SO_SNDBUF,(char*)&gotsize,(socklen_t*)&lennn);
+        if (err < 0) { perror("getsockopt"); break; }
+    } while (gotsize < trysize);
+    printf("Size set to %d\n",gotsize);
+
+    trysize = 1048576+32768;
+    gotsize = 0;
+    do {
+        trysize -= 32768;
+        setsockopt(sockfd,SOL_SOCKET,SO_RCVBUF,(char*)&trysize,lennn);
+        err = getsockopt(sockfd,SOL_SOCKET,SO_RCVBUF,(char*)&gotsize,(socklen_t*)&lennn);
+        if (err < 0) { perror("getsockopt"); break; }
+    } while (gotsize < trysize);
+//    printf("Size set to %d\n",gotsize);
+
+    /*
+     *  LOCATES PLAYERS AND SET UP THEIR
+     *  SOCKET AND ADDRESS
+     *
+     */
+    while(getPlayers() < 2){
+        cout << "\n\n Waiting for Players, Total in server: " << getPlayers();
+
+        if( (recvfrom(sockfd, (char *)buffer, BUFFER_SIZE,
+                      0, ( struct sockaddr *) &cliaddr,
+                      &len) ) < 0 ){
+            perror("recvfrom");
+        }
+
+        buffer[len] = '\0';
+        cout << "\n\nMessage sent from socket: " << ntohs(cliaddr.sin_port);
+        cout << "\n and from Client Address: " << inet_ntoa(cliaddr.sin_addr);
+        printf("\nClient : %s", buffer);
+        printf("\nClient decrypted : %s\n", decrypt(buffer, key) );
+        fflush(stdin);
+        cout << "Handled message :" << handlingMessage(buffer, resp);
+        cout << "\nServer :" << resp;
+        fflush(stdin);
+        printf("\nServer : %s", resp);
+        fflush(stdin);
+        printf("\nServer decrypted : %s", decrypt(resp, key) );
+        encryption(resp, key);
+
+        fflush(stdin);
+        if( (sendto(sockfd, (const char *)resp, strlen(resp),
+                    0, (const struct sockaddr *) &cliaddr,
+                    len) ) < 0 ){
+            perror("sendto");
+        }
+    }
+    /*
+     * ONCE ALL PLAYER ARE HERE,
+     * WE CAN START THE GAME BY SENDING AND START MESSAGE
+     */
+    if(getPlayers() == 2){
+        char ready[16] = {']', 's','t','a','r','t', '\0'};
+        encryption(ready, key);
+        cout << "\n\nServer :" << ready;
+        fflush(stdin);
+        printf("\nServer : %s", ready);
+        fflush(stdin);
+        printf("\nServer decrypted : %s", decrypt(ready, key) );
+        encryption(ready, key);
+
+        sendto(sockfd, (const char *)ready, strlen(ready),
+               0, (const struct sockaddr *) &p1Client,
+               p1Sock);
+        sendto(sockfd, (const char *)ready, strlen(ready),
+               0, (const struct sockaddr *) &p2Client,
+               p2Sock);
+    }
+
+
+}
+
 void Game::setServerTCP() {
 
-
     int sockfd, ret;
-
 
     int newSocket;
     struct sockaddr_in cliaddr;
@@ -639,10 +817,9 @@ void Game::setServerTCP() {
     }
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if(sockfd < 0){
-        printf("[-]Error in connection.\n");
+        perror("socket");
         exit(1);
     }
-    printf("[+]Server Socket is created.\n");
 
     int option = 1;
     setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
@@ -651,14 +828,12 @@ void Game::setServerTCP() {
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(PORT);
     memcpy(&servaddr.sin_addr, record->h_addr_list[0], record->h_length);
-//    servaddr.sin_addr.s_addr = inet_addr(getAddress());
 
     ret = bind(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr));
     if(ret < 0){
-        printf("[-]Error in binding.\n");
+        perror("bind");
         exit(1);
     }
-    printf("[+]Bind to port %d\n", PORT);
 
     if(listen(sockfd, 10) == 0){
         printf("[+]Listening....\n");
@@ -693,12 +868,8 @@ void Game::setServerTCP() {
             }
         }
 
-
-        printf("Connection accepted from %s:%d\n", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
-
         if((childpid = fork()) == 0){
             close(sockfd);
-
             while(getPlayerOneScore() < 3 && getPlayerTwoScore() < 3){
                 recv(newSocket, buffer, BUFFER_SIZE, 0);
                 if(strcmp(buffer, ":exit") == 0){
@@ -729,184 +900,4 @@ void Game::setServerTCP() {
 
     close(newSocket);
     return ;
-}
-void Game::setServerUDP() {
-
-
-    // checks address ip
-        hostent * record = gethostbyname(getAddress());
-        if(record == NULL){
-            cout <<"\n" << getAddress() <<" is unavailable";
-            exit(1);
-        }
-        in_addr * addressHost = (in_addr * )record->h_addr;
-        char* ip_address = inet_ntoa(* addressHost);
-
-
-    // Creating socket file descriptor
-        if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
-//            perror("socket creation failed");
-            perror("sendto");
-            exit(EXIT_FAILURE);
-        }
-
-        memset(&servaddr, 0, sizeof(servaddr));
-        memset(&cliaddr, 0, sizeof(cliaddr));
-
-        // Filling server information
-        servaddr.sin_family = AF_INET; // IPv4
-        memcpy(&servaddr.sin_addr, record->h_addr_list[0], record->h_length);
-//        servaddr.sin_addr.s_addr = INADDR_ANY;
-        servaddr.sin_port = htons(PORT);
-
-        // Bind the socket with the server address
-        if ( bind(sockfd, (const struct sockaddr *)&servaddr,
-                  sizeof(servaddr)) < 0  ){
-//            perror("bind failed");
-            perror("bind");
-            exit(EXIT_FAILURE);
-        }
-
-        unsigned int len;
-        len = sizeof(servaddr);
-
-
-        system("clear");
-
-        char buffer[BUFFER_SIZE],
-            resp[32];
-        int n;
-        unsigned int  m = sizeof(n);
-        getsockopt(sockfd,SOL_SOCKET,SO_RCVBUF,(void *)&n, &m);
-        cout << "\nSocket size = " << n << endl;
-
-    cout << "Server is running on: "
-         << "\n\tAddress : " << getAddress()
-         << "\n\t\t: " << ip_address
-         << "\n\t\t: " << inet_ntoa(servaddr.sin_addr)
-         << "\n\tPort    : " << getPort()
-         << "\n\tPort    : " << ntohs(servaddr.sin_port)
-         << "\n\tSpeed   : " << getFPS()
-         << "\nLogs here: \n\n";
-
-    int lennn, trysize, gotsize, err;
-    lennn = sizeof(int);
-    trysize = 1048576+32768;
-    do {
-        trysize -= 32768;
-        setsockopt(sockfd,SOL_SOCKET,SO_SNDBUF,(char*)&trysize,lennn);
-        err = getsockopt(sockfd,SOL_SOCKET,SO_SNDBUF,(char*)&gotsize,(socklen_t*)&lennn);
-        if (err < 0) { perror("getsockopt"); break; }
-    } while (gotsize < trysize);
-    printf("Size set to %d\n",gotsize);
-
-    trysize = 1048576+32768;
-    gotsize = 0;
-    do {
-        trysize -= 32768;
-        setsockopt(sockfd,SOL_SOCKET,SO_RCVBUF,(char*)&trysize,lennn);
-        err = getsockopt(sockfd,SOL_SOCKET,SO_RCVBUF,(char*)&gotsize,(socklen_t*)&lennn);
-        if (err < 0) { perror("getsockopt"); break; }
-    } while (gotsize < trysize);
-    printf("Size set to %d\n",gotsize);
-
-        while(getPlayers() < 2){
-            cout << "\n\n Waiting for Players, Total in server: " << getPlayers();
-
-            if( (recvfrom(sockfd, (char *)buffer, BUFFER_SIZE,
-                    0, ( struct sockaddr *) &cliaddr,
-                    &len) ) < 0 ){
-                perror("recvfrom");
-            }
-
-            buffer[len] = '\0';
-            cout << "\n\nMessage sent from socket: " << ntohs(cliaddr.sin_port);
-            cout << "\n and from Client Address: " << inet_ntoa(cliaddr.sin_addr);
-            printf("\nClient : %s", buffer);
-            printf("\nClient decrypted : %s\n", decrypt(buffer, key) );
-            fflush(stdin);
-            cout << "Handled message :" << handlingMessage(buffer, resp);
-            cout << "\nServer :" << resp;
-            fflush(stdin);
-            printf("\nServer : %s", resp);
-            fflush(stdin);
-            printf("\nServer decrypted : %s", decrypt(resp, key) );
-            encryption(resp, key);
-
-            fflush(stdin);
-            if( (sendto(sockfd, (const char *)resp, strlen(resp),
-                   0, (const struct sockaddr *) &cliaddr,
-                   len) ) < 0 ){
-                perror("sendto");
-            }
-        }
-
-        if(getPlayers() == 2){
-            char ready[16] = {']', 's','t','a','r','t', '\0'};
-            encryption(ready, key);
-            cout << "\n\nServer :" << ready;
-            fflush(stdin);
-            printf("\nServer : %s", ready);
-            fflush(stdin);
-            printf("\nServer decrypted : %s", decrypt(ready, key) );
-            encryption(ready, key);
-
-            sendto(sockfd, (const char *)ready, strlen(ready),
-                   0, (const struct sockaddr *) &p1Client,
-                   p1Sock);
-            sendto(sockfd, (const char *)ready, strlen(ready),
-                   0, (const struct sockaddr *) &p2Client,
-                   p2Sock);
-        }
-
-
-
-
-
-//    while(1){
-//            fflush(NULL);
-//            fflush(stdin);
-//            fflush(stdout);
-////            std::thread receiving (rcvMessage, buffer, len);
-////            receiving.join();
-////            rcvMessage(buffer, len);
-//
-////            recvfrom(sockfd, (char *)buffer, BUFFER_SIZE,
-////                     MSG_DONTWAIT, ( struct sockaddr *) &cliaddr,
-////                     &len);
-//
-//            buffer[len] = '\0';
-//
-//            cout << "\n\n Message from Client Address: " << inet_ntoa(cliaddr.sin_addr);
-//            cout << "\nand sent from port: " << ntohs(cliaddr.sin_port);
-//            printf("\nClient : %s", buffer);
-//            printf("\nClient decrypted : %s\n", decrypt(buffer, key) );
-//            fflush(stdin);
-//            cout << "Handled message :" << handlingMessage(buffer, resp);
-//            cout << "\n Server :" << resp;
-//            fflush(stdin);
-//            printf("\nServer decrypted : %s", decrypt(resp, key) );
-//                encryption(resp, key);
-//
-//            fflush(NULL);
-//            fflush(stdin);
-//            fflush(stdout);
-////            std::this_thread::sleep_for(std::chrono::milliseconds(200));
-////            std::thread th1 (sendMessageTo, p1Sock, &p1Client, resp);
-////            th1.join();
-//
-//            sendto(sockfd, (const char *)resp, strlen(resp),
-//                   0, (const struct sockaddr *) &p1Client,
-//                   p1Sock);
-//            fflush(NULL);
-//            fflush(stdin);
-//            fflush(stdout);
-//            sendto(sockfd, (const char *)resp, strlen(resp),
-//               0, (const struct sockaddr *) &p2Client,
-//               p2Sock);
-////            sendMessageTo(p2Sock, &p2Client, resp);
-////            std::thread th2 (sendMessageTo, p2Sock, &p2Client, resp);
-////            th2.join();
-//        }
-
 }

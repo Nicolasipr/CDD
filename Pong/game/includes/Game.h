@@ -101,7 +101,6 @@ public:
 
 
     // TOOLS
-    void update(); // updates data from players
     char controlInput(); // handles keyboard input without terminal buffer
     int kbhit(void);
     char* encryption( char* msg, char* key);
@@ -123,7 +122,6 @@ public:
     static void *rcvMessageHelperP2(void *);
     char * rcvMessageP2(char * msg, char * resp);
     char * rcvMessageFrom(int id_socket, struct sockaddr_in client, char * msg);
-    static void *sendMessageHelper(void *);
     void sendMessageTo(int id_socket, struct sockaddr_in client, char * msg);
 
     int getPort();
