@@ -1,28 +1,28 @@
 //
 // Created by nicolasipr on 15/10/2019.
 //
-
+// standar
 #include "includes/Player.h"
 #include <iostream>
-//#include <stdio.h>
 #include <cstdio>
+
+// strings and standar libraries
 #include <fcntl.h>
-//#include<stdlib.h>
 #include <cstdlib>
-//#include <ctype.h>
 #include <cctype>
-//socket
+
+//  socket
 #include <bits/stdc++.h>
 #include <arpa/inet.h>
-// #include <sys/socket.h>
 #include <netinet/in.h> // socket struct
 #include <chrono>
 #include <unistd.h>
 #include <netdb.h>
 
+/*
+ * GLOBAL VARIABLES
+ */
 static pthread_mutex_t player_mutex; // avoids threads interruption.
-
-
 #define BUFFER_SIZE 512
 
 
@@ -113,19 +113,6 @@ void Player::sendToServer(){
  *
  */
 
-//char* Player::createMessage( char * mes_buff) {
-//
-//    mes_buff[0] = getPlayerSide() + '0';
-//    mes_buff[1] = '+';
-//    mes_buff[2] = controlInput();
-//
-//    for(long unsigned int  i = 3 ; i < 64; i++)
-//        mes_buff[i] = getRandomChar();
-//
-//    mes_buff[64] = '\0';
-//
-//    return encryption(mes_buff, key);
-//}
 
 char* Player::createMessage( char * mes_buff) {
 
@@ -200,7 +187,11 @@ void Player::recvHandler(char * msg) {
     /*
      *  recv msg format
      *  While Connection Request > "token, side, Game Speed"
-     *  While Playing > "Player1: Player 1 Y pos,  Player 2: Player 2 Y Pos"
+     *  While Playing > "Player 1 Y Pos,
+     *                  Player 2 Y Pos,
+     *                  Ball X Pos
+     *                  Ball Y Pos
+     *
      *
      */
     // Connection request Handler
@@ -209,18 +200,18 @@ void Player::recvHandler(char * msg) {
 
     if(msg != NULL){
 
-        if( msg[0] == '?') {
+        if( msg[0] == '?') {  // joining game
 
             setPlayers(); // updates total of players
             playerSide = msg[1] - '0'; // gives player k its number side
             setDifficulty( msg[3] + '0');
 
         }
-        if( msg[0] == ']'){
+        if( msg[0] == ']'){ // start game
             setServerStatus(true);
         }
         // Playing data Handler
-        if( msg[0] == '!'){
+        if( msg[0] == '!'){  // while playing.
 
             int i = 1,
                 temp = 0,
@@ -282,12 +273,10 @@ void Player::sendMessage() {
          msg_buff[33]; // buffer message to send;
 
     createMessage(msg_buff);
-//    if (  strcmp(createMessage(msg_buff), "false") == 0   ) {
+
         sendto(socket_fd, (const char *) msg_buff, strlen(msg_buff) ,
                0, (const struct sockaddr *) &server,
                sizeof(server));
-//    }
-
 
     unsigned int len;
     fflush(stdin);
@@ -298,7 +287,6 @@ void Player::sendMessage() {
     }
 
     rcv_buf[len] = '\0';
-
     recvHandler(rcv_buf);
 
 }
@@ -317,7 +305,6 @@ void Player::joinGame() {
            0 , (const struct sockaddr *) &server,
            sizeof(server)) < 0 ){
         perror("sendto");
-//        exit(1);
     }
 
     unsigned int join_size;
@@ -326,24 +313,68 @@ void Player::joinGame() {
              0, (struct sockaddr *) &server,
              &join_size) < 0 ){
         perror("recvfrom");
-        exit(1);
     }
 
     fflush(stdin);
     join[join_size] = '\0';
-
-//    if (join != NULL){
-//        setServerStatus(true);
-//    }
     recvHandler(join);
 }
+
+/*
+ * PLAYER CONNECTIONS METHODS
+ *      CloseConnection
+ *      ConnectionUDP
+ *      Connection TCP // just for testing purposes
+ *
+ */
+
 void Player::closeConnection() {
     close(socket_fd);
 }
 
+void Player::connectionUDP(){
+
+    // Figures out if connection is valid or not
+    hostent * record = gethostbyname(getAddress());
+
+    if(record == NULL){
+        cout <<"\n" <<  getAddress() <<" is unavailable";
+        exit(1);
+    }
+
+    in_addr * addressHost = (in_addr * )record->h_addr;
+    char* ip_address = inet_ntoa(* addressHost);
+
+    int port = getPort();
+
+    cout << "\nServer Name Address: " << getAddress() << endl
+         << "IPv4 Address: " << ip_address << endl
+         << "Port: " << port << endl;
+
+    // sets up UDP connection
+
+    //  Socket
+    socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
+     if ( socket_fd < 0 ) { // 0 means default, AF_NET = IPV4 & SOCK_STREAM = TCP, SOCK_DGRAM = UDP
+         cout << "Error while opening socket";
+         perror("socket");
+         exit(1);
+     }
+
+
+    // Free and sets server address  information
+    memset(&server, '\0', sizeof (server));
+
+    server.sin_family = AF_INET;
+    server.sin_port = htons(port);
+    server.sin_addr.s_addr = htonl(INADDR_ANY);
+
+
+    inet_pton(AF_INET, ip_address, &server.sin_addr);
+
+}
+
 void Player::connectionTCP() {
-
-
 
     // Figures out if connection is valid or not
     hostent * record = gethostbyname(getAddress());
@@ -368,7 +399,6 @@ void Player::connectionTCP() {
     server.sin_family = AF_INET;
     server.sin_port = htons(getPort());
     memcpy(&server.sin_addr, record->h_addr_list[0], record->h_length);
-//    server.sin_addr.s_addr = inet_addr(getAddress());
 
 
     // Convert IPv4 and IPv6 addresses from text to binary form
@@ -377,7 +407,7 @@ void Player::connectionTCP() {
         return ;
     }
     cout << "\nServer Name Address: " << getAddress() << endl
-            << "IPv4 Address: " << ip_address << endl
+         << "IPv4 Address: " << ip_address << endl
          << "IPv4 Address: " << server.sin_addr.s_addr << endl
          << "Port: " << server.sin_port << endl;
 
@@ -395,45 +425,4 @@ void Player::connectionTCP() {
     }
 
     return ;
-}
-void Player::connectionUDP(){
-
-    // Figures out if connection is valid or not
-    hostent * record = gethostbyname(getAddress());
-
-    if(record == NULL){
-        cout <<"\n" <<  getAddress() <<" is unavailable";
-        exit(1);
-    }
-
-    in_addr * addressHost = (in_addr * )record->h_addr;
-    char* ip_address = inet_ntoa(* addressHost);
-
-    int port = getPort();
-
-    cout << "\nServer Name Address: " << getAddress() << endl
-         << "IPv4 Address: " << ip_address << endl
-         << "Port: " << port << endl;
-
-    // sets up UDP connection
-
-    //  Socket
-    socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
-     if ( socket_fd < 0 ) { // 0 means default, AF_NET = IPV4 & SOCK_STREAM = TCP
-         cout << "Error while opening socket";
-         perror("socket");
-         exit(1);
-     }
-
-
-    // Free and sets server address  information
-    memset(&server, '\0', sizeof (server));
-
-    server.sin_family = AF_INET;
-    server.sin_port = htons(port);
-    server.sin_addr.s_addr = htonl(INADDR_ANY);
-
-
-    inet_pton(AF_INET, ip_address, &server.sin_addr);
-
 }

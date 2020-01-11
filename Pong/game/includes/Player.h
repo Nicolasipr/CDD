@@ -20,9 +20,6 @@ private:
     char name[32] = "192.168.0.1";
     int playerScore = 0;
     int playerSide = getPlayers(); // 1 or 2
-//    char paddle[7] = "123456";
-    int paddleYPos = 0; // centering players paddle.
-    int paddleXPos  = 0;
 
     char key[31] = "@PoNg_CdD_iN_C++_HaVe_FuN!@";
     int socket_fd;
@@ -32,35 +29,34 @@ public:
     Player();
     ~Player();
 
+    /*
+     * Player connection Handles
+     */
     void joinGame(); // Players request to enter the game to default side.
     void connectionUDP(); // Stablish Connection with Server and it stays connetected while client is running
     void connectionTCP();
     void closeConnection(); // closes socket
     void recvHandler(char *); // It Handles data received from Server
 
-    void playerInput();
     char* createMessage(char * msg); // Creates a message to send whenever a key is pressed to update players condition.
     void sendMessage();
-    void control();
 
-//    int getPaddleYPos();
-//    void setPaddleYPos();
-
+    /*
+     * Players Pladdle and Position
+     */
     int getPaddleXPos();
     int getPlayerSide();
-
     char * getPaddle();
     void sendPosY();
 
-    // threads
+    /*
+     * PLAYER THREADS HANDLERS
+     */
     static void *listenServerHelper(void *);
     void listenServer(char* buff);
     static void *sendToServerHelper(void *);
     void sendToServer();
-
-
-
-
+    
 };
 
 
