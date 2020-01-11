@@ -7,10 +7,19 @@
 #include <chrono>
 #include <thread>
 #include <iostream>
-#include <stdio.h>
-#include<stdlib.h>
+#include <cstdio>
+#include <cstdlib>
+//#include <stdio.h>
+//#include<stdlib.h>
 
 using namespace std;
+
+// directions;
+int north = -1,
+    south = 1,
+    east = 1,
+    west = -1,
+    straight = 0;
 
 // CONSTRUCTOR
 Board::Board() {
@@ -31,28 +40,15 @@ Board::~Board() {
  *  resetBall() ->  resets  ball position to initial values
  * */
 void Board::setBallPos(int posX, int posY) {
-    ballXPosition = posX;
-    ballYPosition = posY;
+    setBallXPos(posX);
+    setBallYPos(posY);
 }
 
-int Board::getXPos(){
-    return ballXPosition;
-}
-
-int Board::getYPos(){
-    return ballYPosition;
-}
-int Board::getBallXDirection(){
-    return ballXDirection;
-}
-
-int Board::getBallYDirection(){
-    return ballYDirection;
-}
 
 void Board::resetBall() {
-    ballXPosition = width/2;
-    ballYPosition = (height + scoreBoard)/2;
+    int xMid = width/2,
+        yMid = (height + scoreBoard)/2 ;
+    setBallPos( xMid, yMid);
 }
 
 /*
@@ -80,10 +76,12 @@ void Board::resetBall() {
 void Board::ballHandler(int p1_pos, int p2_pos) {
 
     int board = height + scoreBoard,
-        x = getXPos(),
-        y = getYPos(),
-        yDir  = getBallYDirection(),
-        xDir  = getBallXDirection();
+        x = getBallXPos(),
+        y = getBallYPos(),
+
+        yDir  = getBallYDir(),
+        xDir  = getBallXDir();
+
         setPlayerOnePos(p1_pos);
         setPlayerTwoPos(p2_pos);
 
@@ -91,13 +89,13 @@ void Board::ballHandler(int p1_pos, int p2_pos) {
     // upper wall
     if( y == scoreBoard + 1){
         if( (y + yDir) == scoreBoard){
-             ballYDirection = 1; // down
+            setBallYDir(south);
         }
     }
     // bottom wall
     if( y == scoreBoard + height - 1){
         if( (y + yDir) == board){
-            ballYDirection = -1; // up
+            setBallYDir(north);
         }
     }
     //      PLAYERS PADS
@@ -105,31 +103,37 @@ void Board::ballHandler(int p1_pos, int p2_pos) {
     // Player One
     if( x + xDir == 4) {
         if( getPlayerOneYPos() == y  || getPlayerOneYPos() + 1 == y ){ // first to paddles
-            ballYDirection = -1;
-            ballXDirection = 1;
+            setBallXDir(east);
+            setBallYDir(north);
+
         }
         else if ( getPlayerOneYPos() + 2 == y  || getPlayerOneYPos() + 3 == y){ // middle segment
-                ballYDirection = 0;
-                ballXDirection = 1;
+            setBallXDir(east);
+            setBallYDir(straight);
+
             }
         else if ( getPlayerOneYPos() + 4 == y  || getPlayerOneYPos() + 5 == y){ // last segment paddles
-            ballYDirection = 1;
-            ballXDirection = 1;
+            setBallXDir(east);
+            setBallYDir(south);
+
         }
     }
     // Player Two
     if( x + xDir == width - 4) {
         if( getPlayerTwoYPos() == y  || getPlayerTwoYPos() + 1 == y ){ // first to paddles
-            ballYDirection = -1;
-            ballXDirection = -1;
+            setBallXDir(west);
+            setBallYDir(north);
+
         }
         else if ( getPlayerTwoYPos() + 2 == y  || getPlayerTwoYPos() + 3 == y){ // middle segment
-            ballYDirection = 0;
-            ballXDirection = -1;
+            setBallXDir(west);
+            setBallYDir(straight);
+
         }
         else if ( getPlayerTwoYPos() + 4 == y  || getPlayerTwoYPos() + 5 == y){ // last segment paddles
-            ballYDirection = 1;
-            ballXDirection = -1;
+            setBallXDir(west);
+            setBallYDir(south);
+
         }
     }
 
@@ -139,17 +143,20 @@ void Board::ballHandler(int p1_pos, int p2_pos) {
     if( x == (width - 1) ){
         setPlayerOneScore( getPlayerOneScore() + 1);
         resetBall();
-        ballXDirection = -1; // left
+        setBallXDir(west);
+
     }
     // P2
     if( x == 1 ){
         setPlayerTwoScore( getPlayerTwoScore() + 1 );
         resetBall();
-        ballXDirection = 1; // right
+        setBallXDir(east);
+
     }
+
     //          MOVING BALL
-    int nextX = getXPos() + ballXDirection,
-        nextY = getYPos() + ballYDirection;
+    int nextX = getBallXPos() + getBallXDir(),
+        nextY = getBallYPos() + getBallYDir();
     setBallPos(nextX, nextY);
 }
 void Board::showBoard(int p1_pos, int p2_pos) {
@@ -166,7 +173,7 @@ void Board::showBoard(int p1_pos, int p2_pos) {
 
         for ( int j = 0; j <= (width); j++){
             // Printing ball
-            if( i == ballYPosition && j == ballXPosition) {
+            if( i == getBallYPos() && j == getBallXPos()) {
                 cout << pongBall;
                 continue;
             }
@@ -229,14 +236,13 @@ void Board::showBoard(int p1_pos, int p2_pos) {
         }
         cout << endl;
     }
+    std::cout.flush();
     fflush(stdin);
 
 }
 void Board::gameHandler() {
     do{
         std::this_thread::sleep_for(std::chrono::milliseconds(getFPS()));
-//        ballHandler();
-//        showBoard();
 
     }while( getPlayerTwoScore() < 3 || getPlayerOneScore() < 3);
 }

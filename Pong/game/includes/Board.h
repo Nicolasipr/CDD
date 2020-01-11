@@ -9,10 +9,8 @@
 
 //#include "Player.h"
 
-//class Game;
-//class Player;
 
-class Board : virtual public Game{ // hybrid inheritance (?
+class Board : virtual public Game{
 
 private:
     // Board limits
@@ -26,10 +24,6 @@ private:
 
 //  Ball Settings
     char pongBall = 'O';
-    int ballXPosition = width/2;
-    int ballYPosition = (height + scoreBoard)/2;
-    int ballXDirection = 1; // 1: left && -1: right
-    int ballYDirection = 1; // 1: down && -1: up
 
 public:
     Board();
@@ -44,12 +38,6 @@ public:
     void setBallPos(int posX, int posY);
     void resetBall();
     void ballHandler(int, int); // bounces the ball and displaces it
-    int getYPos();
-    int getXPos();
-    int getBallXDirection();
-    int getBallYDirection();
-
-//    // PLAYERS
 
 };
 
