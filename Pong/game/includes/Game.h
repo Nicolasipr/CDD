@@ -17,7 +17,7 @@ private:
     int gameMode = 1; // 1: easy(200). 2: Medium (50) , 3: Hard (20), 4: Progressive
 
     // server information.
-    const char * serverAddress = "localhost";
+    char  serverAddress[32] =  {'l','o','c','a','l','h','o','s','t','\0'};
     int serverPort = 7777;
     bool serverStatus = false;
     unsigned int players_count = 0;
@@ -57,7 +57,7 @@ private:
     int ballXDirection = 1; // 1: left && -1: right
     int ballYDirection = 1; // 1: down && -1: up
 
-    char key[31] = "@PoNg_CdD_iN_C++_HaVe_FuN!@";
+    char key[31] = "@PoNg_CdD_iN_Cpp_HaVe_FuN!@";
 
 public:
     Game();
@@ -83,7 +83,8 @@ public:
     int getPlayerTwoYPos();
     void setPlayerTwoPos(int);
 
-    int getPlayerXPos(); //
+    int getPlayer1XPos(); //
+    int getPlayer2XPos(); //
 
     // BALL
     int getBallXPos();
@@ -110,9 +111,10 @@ public:
 
     // Server side
     char * getAddress();
+    void setAddress(char * n_address);
     bool getServerStatus();
     void setServerStatus(bool n_status);
-    void setAddress(const char * n_address);
+
     char * handlingMessage(char * msg, char * resp);
 
     // Threads

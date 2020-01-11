@@ -29,18 +29,20 @@
 #define BUFFER_SIZE 1024
 #define MAX_CLIENTS 2
 #define esc 27
-static pthread_mutex_t mutex; // avoids threads interruption.
+
+//static pthread_mutex_t mutex; // avoids threads interruption.
 
 using namespace std;
 
 Game::Game() {
 
-    cout << "\n\n\n\t\tLoading...";
+//    cout << "\n\n\n\t\tLoading...";
     system("clear");
 }
 
 Game::~Game() {
-    cout << "Thanks for playing!";
+    system("clear");
+    cout << "\nnThanks for playing!";
 }
 int Game::getFPS() {
     return FPS;
@@ -55,6 +57,20 @@ bool Game::getServerStatus() {
 
 void Game::setServerStatus( bool n_status) {
     serverStatus = n_status;
+}
+int Game::getPort(){
+    return  serverPort;
+}
+void Game::setPort(int n_port) {
+    serverPort = n_port;
+}
+
+char * Game::getAddress() {
+    return (char *) serverAddress;
+}
+void Game::setAddress(char *n_address) {
+    strcpy(serverAddress, n_address);
+//    serverAddress = n_address;
 }
 
 /*
@@ -93,6 +109,12 @@ void Game::setPlayerOneScore(int n_score) {
 }
 void Game::setPlayerTwoScore(int n_score){
     playerTwoScore = n_score;
+}
+int Game::getPlayer1XPos() {
+    return scoreBoard;
+}
+int Game::getPlayer2XPos() {
+    return (width - 4 );
 }
 /*
  *  BALL
@@ -139,7 +161,7 @@ void *Game::rcvMessageHelper(void *p){
     Game *a = (Game *)p; // cast *p to Game Class type
 
     char buffer[BUFFER_SIZE],
-            resp[64];
+            resp[128];
 
     while( a->getPlayerOneScore() < 3 && a->getPlayerTwoScore() < 3){
 
@@ -177,7 +199,8 @@ char* Game::rcvMessage(char * buffer, char * resp) {
         cout << "Handled message :" << handlingMessage(buffer, resp);
         cout << "\n Server :" << resp;
         fflush(stdin);
-        printf("\nServer decrypted : %s", decrypt(resp, key) );
+        cout << "\nServer decrypted :  " << decrypt(resp, key) << endl;
+        std::cout.flush();
     }
 
 //    pthread_mutex_unlock(&mutex);
@@ -209,7 +232,6 @@ char* Game::rcvMessageP2(char * buffer, char * resp) {
         cout << "\n Server :" << resp;
         fflush(stdin);
         cout << "\nServer decrypted :  " << decrypt(resp, key) << endl;
-//        printf("\nServer decrypted : %s", decrypt(resp, key) );
         std::cout.flush();
     }
 
@@ -220,7 +242,7 @@ void *Game::rcvMessageHelperP2(void *p){
     Game *a = (Game *)p; // cast *p to Game Class type
 
     char buffer[BUFFER_SIZE],
-            resp[64];
+            resp[128];
 
     while( a->getPlayerOneScore() < 3 && a->getPlayerTwoScore() < 3){
 
@@ -242,15 +264,12 @@ void *Game::sendMessageHelper(void *p){
     Game *a = (Game *)p; // cast *p to Game Class type
 
     char buffer[BUFFER_SIZE],
-            resp[64];
+            resp[128];
 
     while(a->getPlayerOneScore() < 3 && a->getPlayerTwoScore() < 3){
 
         a->handlingMessage(buffer, resp);
         a->sendMessageTo(a->p1Sock, a->p1Client, resp);
-//        a->sendMessageTo(a->p2Sock, a->p2Client, resp);
-//        std::this_thread::sleep_for(std::chrono::milliseconds(166));
-
         p=a;
     }
     return NULL;
@@ -261,7 +280,7 @@ void Game::sendMessageTo(int id_socket, struct sockaddr_in client, char * resp) 
                  MSG_DONTWAIT, (const struct sockaddr *) &client,
                     id_socket)< 0){
         perror("sendto");
-//        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
     }
     else{
         std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 6 ppm
@@ -425,24 +444,17 @@ char* Game::handlingMessage(char * msg, char * resp) {
                         resp[10] = getBallYPos()/10 + '0';
                         resp[11] = getBallYPos()%10 + '0';
                         resp[12] = '+';
-                        resp[13] = getPlayerOneScore() + '0';
-                        resp[14] = '+';
-                        resp[15] = getPlayerTwoScore() + '0';
-                        resp[16] = '+';
-                        resp[17] = '\0';
+                        resp[13] = '\0';
 
                     }
                     else{
                         resp[10] = getBallYPos() + '0';
                         resp[11] = '+';
-                        resp[12] = getPlayerOneScore() + '0';
-                        resp[13] = '+';
-                        resp[14] = getPlayerTwoScore() + '0';
-                        resp[15] = '+';
-                        resp[16] = '\0';
+                        resp[12] = '\0';
+
 
                     }
-                    cout << "\nRESP : " << resp << endl;
+
                     return encryption(resp, key);
                 }
                 else{
@@ -452,23 +464,16 @@ char* Game::handlingMessage(char * msg, char * resp) {
                         resp[9] = getBallYPos()/10 + '0';
                         resp[10] = getBallYPos()%10 + '0';
                         resp[11] = '+';
-                        resp[12] = getPlayerOneScore();
-                        resp[13] = '+';
-                        resp[14] = getPlayerTwoScore();
-                        resp[15] = '+';
-                        resp[16] = '\0';
+                        resp[12] = '\0';
+
 
                     }
                     else{
                         resp[9] = getBallYPos() + '0';
                         resp[10] = '+';
-                        resp[11] = getPlayerOneScore() + '0';
-                        resp[12] = '+';
-                        resp[13] = getPlayerTwoScore() + '0';
-                        resp[14] = '+';
-                        resp[15] = '\0';
+                        resp[11] = '\0';
                     }
-                    cout << "\nRESP : " << resp << endl;
+
                     return encryption(resp, key);
                 }
             }
@@ -484,24 +489,17 @@ char* Game::handlingMessage(char * msg, char * resp) {
                         resp[9] = getBallYPos()/10 + '0';
                         resp[10] = getBallYPos()%10 + '0';
                         resp[11] = '+';
-                        resp[12] = getPlayerOneScore() + '0';
-                        resp[13] = '+';
-                        resp[14] = getPlayerTwoScore() + '0';
-                        resp[15] = '+';
-                        resp[16] = '\0';
+                        resp[12] = '\0';
+
 
                     }
                     else{
                         resp[9] = getBallYPos() + '0';
                         resp[10] = '+';
-                        resp[11] = getPlayerOneScore() + '0';
-                        resp[12] = '+';
-                        resp[13] = getPlayerTwoScore() + '0';
-                        resp[14] = '+';
-                        resp[15] = '\0';
+                        resp[11] = '\0';
 
                     }
-                    cout << "\nRESP : " << resp << endl;
+
                     return encryption(resp, key);
                 }
                 else{
@@ -511,23 +509,14 @@ char* Game::handlingMessage(char * msg, char * resp) {
                         resp[9] = getBallYPos()/10 + '0';
                         resp[10] = getBallYPos()%10 + '0';
                         resp[11] = '+';
-                        resp[12] = getPlayerOneScore();
-                        resp[13] = '+';
-                        resp[14] = getPlayerTwoScore();
-                        resp[15] = '+';
-                        resp[16] = '\0';
-
+                        resp[12] = '\0';
                     }
                     else{
                         resp[9] = getBallYPos() + '0';
                         resp[10] = '+';
-                        resp[11] = getPlayerOneScore() + '0';
-                        resp[12] = '+';
-                        resp[13] = getPlayerTwoScore() + '0';
-                        resp[14] = '+';
-                        resp[15] = '\0';
+                        resp[11] = '\0';
                     }
-                    cout << "\nRESP : " << resp << endl;
+
                     return encryption(resp, key);
                 }
             }
@@ -548,24 +537,16 @@ char* Game::handlingMessage(char * msg, char * resp) {
                         resp[9] = getBallYPos()/10 + '0';
                         resp[10] = getBallYPos()%10 + '0';
                         resp[11] = '+';
-                        resp[12] = getPlayerOneScore() + '0';
-                        resp[13] = '+';
-                        resp[14] = getPlayerTwoScore() + '0';
-                        resp[15] = '+';
-                        resp[16] = '\0';
+                        resp[12] = '\0';
 
                     }
                     else{
                         resp[9] = getBallYPos() + '0';
                         resp[10] = '+';
-                        resp[11] = getPlayerOneScore() + '0';
-                        resp[12] = '+';
-                        resp[13] = getPlayerTwoScore() + '0';
-                        resp[14] = '+';
-                        resp[15] = '\0';
+                        resp[11] = '\0';
 
                     }
-                    cout << "\nRESP : " << resp << endl;
+
                     return encryption(resp, key);
                 }
                 else{
@@ -575,23 +556,15 @@ char* Game::handlingMessage(char * msg, char * resp) {
                         resp[8] = getBallYPos()/10 + '0';
                         resp[9] = getBallYPos()%10 + '0';
                         resp[10] = '+';
-                        resp[11] = getPlayerOneScore() + '0';
-                        resp[12] = '+';
-                        resp[13] = getPlayerTwoScore() + '0';
-                        resp[14] = '+';
-                        resp[15] = '\0';
+                        resp[11] = '\0';
 
                     }
                     else{
                         resp[8] = getBallYPos() + '0';
                         resp[9] = '+';
-                        resp[10] = getPlayerOneScore() + '0';
-                        resp[11] = '+';
-                        resp[12] = getPlayerTwoScore() + '0';
-                        resp[13] = '+';
-                        resp[14] = '\0';
+                        resp[10] = '\0';
                     }
-                    cout << "\nRESP : " << resp << endl;
+
                     return encryption(resp, key);
                 }
             }
@@ -607,24 +580,16 @@ char* Game::handlingMessage(char * msg, char * resp) {
                         resp[9] = getBallYPos()/10 + '0';
                         resp[10] = getBallYPos()%10 + '0';
                         resp[11] = '+';
-                        resp[12] = getPlayerOneScore();
-                        resp[13] = '+';
-                        resp[14] = getPlayerTwoScore();
-                        resp[15] = '+';
-                        resp[16] = '\0';
+                        resp[12] = '\0';
 
                     }
                     else{
                         resp[9] = getBallYPos() + '0';
                         resp[10] = '+';
-                        resp[11] = getPlayerOneScore();
-                        resp[12] = '+';
-                        resp[13] = getPlayerTwoScore();
-                        resp[14] = '+';
-                        resp[15] = '\0';
+                        resp[11] = '\0';
 
                     }
-                    cout << "\nRESP : " << resp << endl;
+
                     return encryption(resp, key);
                 }
                 else{
@@ -634,23 +599,15 @@ char* Game::handlingMessage(char * msg, char * resp) {
                         resp[9] = getBallYPos()/10 + '0';
                         resp[10] = getBallYPos()%10 + '0';
                         resp[11] = '+';
-                        resp[12] = getPlayerOneScore();
-                        resp[13] = '+';
-                        resp[14] = getPlayerTwoScore();
-                        resp[15] = '+';
-                        resp[16] = '\0';
+                        resp[12] = '\0';
 
                     }
                     else{
                         resp[9] = getBallYPos() + '0';
                         resp[10] = '+';
-                        resp[11] = getPlayerOneScore();
-                        resp[12] = '+';
-                        resp[13] = getPlayerTwoScore();
-                        resp[14] = '+';
-                        resp[15] = '\0';
+                        resp[11] = '\0';
                     }
-                    cout << "\nRESP : " << resp << endl;
+
                     return encryption(resp, key);
                 }
             }
@@ -659,12 +616,7 @@ char* Game::handlingMessage(char * msg, char * resp) {
 /*
  *
  */
-int Game::getPort(){
-    return  serverPort;
-}
-char * Game::getAddress() {
-    return (char *) serverAddress;
-}
+
 void Game::setServerTCP() {
 
 
@@ -715,7 +667,7 @@ void Game::setServerTCP() {
     }
 
     socklen_t addr_size = sizeof(cliaddr);
-    while(1){
+    while(!getServerStatus()){
         while(getPlayers() < 2){
             newSocket = accept(sockfd, (struct sockaddr*)&cliaddr, &addr_size);
             if(newSocket < 0){
@@ -747,7 +699,7 @@ void Game::setServerTCP() {
         if((childpid = fork()) == 0){
             close(sockfd);
 
-            while(1){
+            while(getPlayerOneScore() < 3 && getPlayerTwoScore() < 3){
                 recv(newSocket, buffer, BUFFER_SIZE, 0);
                 if(strcmp(buffer, ":exit") == 0){
                     printf("Disconnected from %s:%d\n", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
@@ -790,9 +742,11 @@ void Game::setServerUDP() {
         in_addr * addressHost = (in_addr * )record->h_addr;
         char* ip_address = inet_ntoa(* addressHost);
 
+
     // Creating socket file descriptor
         if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
-            perror("socket creation failed");
+//            perror("socket creation failed");
+            perror("sendto");
             exit(EXIT_FAILURE);
         }
 
@@ -808,7 +762,8 @@ void Game::setServerUDP() {
         // Bind the socket with the server address
         if ( bind(sockfd, (const struct sockaddr *)&servaddr,
                   sizeof(servaddr)) < 0  ){
-            perror("bind failed");
+//            perror("bind failed");
+            perror("bind");
             exit(EXIT_FAILURE);
         }
 
@@ -833,6 +788,7 @@ void Game::setServerUDP() {
          << "\n\tPort    : " << ntohs(servaddr.sin_port)
          << "\n\tSpeed   : " << getFPS()
          << "\nLogs here: \n\n";
+
     int lennn, trysize, gotsize, err;
     lennn = sizeof(int);
     trysize = 1048576+32768;
@@ -857,9 +813,11 @@ void Game::setServerUDP() {
         while(getPlayers() < 2){
             cout << "\n\n Waiting for Players, Total in server: " << getPlayers();
 
-            recvfrom(sockfd, (char *)buffer, BUFFER_SIZE,
+            if( (recvfrom(sockfd, (char *)buffer, BUFFER_SIZE,
                     0, ( struct sockaddr *) &cliaddr,
-                    &len);
+                    &len) ) < 0 ){
+                perror("recvfrom");
+            }
 
             buffer[len] = '\0';
             cout << "\n\nMessage sent from socket: " << ntohs(cliaddr.sin_port);
@@ -876,9 +834,11 @@ void Game::setServerUDP() {
             encryption(resp, key);
 
             fflush(stdin);
-            sendto(sockfd, (const char *)resp, strlen(resp),
+            if( (sendto(sockfd, (const char *)resp, strlen(resp),
                    0, (const struct sockaddr *) &cliaddr,
-                   len);
+                   len) ) < 0 ){
+                perror("sendto");
+            }
         }
 
         if(getPlayers() == 2){
