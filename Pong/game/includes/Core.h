@@ -18,6 +18,8 @@ public:
     ~Core();
 
     void playerHandler();
+    void serverHandler();
+
 
 };
 
