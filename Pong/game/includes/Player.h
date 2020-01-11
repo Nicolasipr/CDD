@@ -33,7 +33,8 @@ public:
     ~Player();
 
     void joinGame(); // Players request to enter the game to default side.
-    void connection(); // Stablish Connection with Server and it stays connetected while client is running
+    void connectionUDP(); // Stablish Connection with Server and it stays connetected while client is running
+    void connectionTCP();
     void closeConnection(); // closes socket
     void recvHandler(char *); // It Handles data received from Server
 
@@ -50,6 +51,13 @@ public:
 
     char * getPaddle();
     void sendPosY();
+
+    // threads
+    static void *listenServerHelper(void *);
+    void listenServer(char* buff);
+    static void *sendToServerHelper(void *);
+    void sendToServer();
+
 
 
 
