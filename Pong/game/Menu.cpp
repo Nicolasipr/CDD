@@ -11,12 +11,40 @@
 #include <cstdlib>
 #include <chrono>
 #include <thread>
+#include <cstring>
 
 
 using namespace std;
 
 Game Pong;
 Core core;
+
+void showControls(){
+    system("clear");
+    cout << "\n\n\t\t Players Controls " << endl
+        << "\tPLayer 1\t\tPlayer 2" << endl
+        << "UP KEY = w\t\t UP KEY = i" << endl
+        << "DOWN KEY = s\t\tDOWN KEY = k" << endl;
+}
+void setAddressHelper(){
+    cout << "Input your new Address : " ;
+    string new_address;
+    cin >> new_address;
+    char *cstr = &new_address[0];
+    core.setAddress( cstr );
+
+}
+
+void setPortHelper(){
+    cout << "Input your new Port : " ;
+    int port;
+    cin >> port;
+    if(port >= 1024 && port < 65535){
+        core.setPort(port);
+    }
+    else
+        cout << "\nPort given is not in range of [1024, 65535[ usable ports" << endl;
+}
 
 void displayName(){
     system("clear");
@@ -73,16 +101,13 @@ void displayOptions(){
         switch(key = Pong.controlInput() ){
 
             case '1':
-                cout << "Setting up Server...\n";
-                Pong.setServer();
+               serverOptions();
+                cin.sync();
                 break;
+
             case '2':
-                cout << "Setting up Player 1";
-//                Player player();
-                while(1){
-//                    Player();
-                    core.playerHandler();
-                }
+                playerOptions();
+                cin.sync();
                 break;
             case('3'):
                 cout << "Setting up Player 2";
@@ -97,6 +122,71 @@ void displayOptions(){
                 break;
         }
     }while( (key = Pong.controlInput() ) != 'q');
+
+}
+
+void serverOptions(){
+    char key;
+    do{
+        system("clear");
+        cout << "\n\n\t\t Current Server Options " << endl
+             << "\n\tAddress: " << core.getAddress() << endl
+             << "\tPort : " << core.getPort() << endl
+             << "\tGame Mode: " << core.getFPS() << endl
+             << "\n\n Are you sure to continue with current setting?" << endl
+             << "\n\t\t Y | N " << endl;
+
+        if( tolower( Pong.controlInput() ) == 'y'){
+            system("clear");
+            cout << "Setting up Server...\n" << endl;
+            core.serverHandler();
+        }
+        else {
+            system("clear");
+            cout << "\n\n\t\tSetting up Server...\n" << endl
+                 << "(1) Change Address" << endl
+                 << "(2) Change Port" << endl
+                 << "(3) Change Game Mode" << endl
+                 << "(q) Change Address" << endl;
+
+        }
+        this_thread::sleep_for(chrono::milliseconds(200));
+        key = Pong.controlInput();
+
+        switch(key = Pong.controlInput() ){
+            case '1':
+                setAddressHelper();
+                break;
+            case '2':
+               setPortHelper();
+                break;
+            case '3':
+                break;
+            case 'q':
+                break;
+
+        }
+
+    } while( (key = Pong.controlInput() ) != 'q');
+
+}
+
+void playerOptions(){
+    cout << "\n\n\t\t Current Server Options " << endl
+         << "\n\tAddress: " << core.getAddress() << endl
+         << "\tPort : " << core.getPort() << endl
+         << "\tGame Mode: " << core.getFPS() << endl
+         //                     << "\tPLayer UP key :" << core.p1UpKey << endl
+         //                     << "\tPLayer DOWN key :" << core.p1DownKey << endl
+         << "\n\n Are you sure to continue with current setting?" << endl
+         << "\n\t\t Y | N " << endl;
+
+    if( tolower( Pong.controlInput() ) == 'y'){
+        system("clear");
+        cout << "Setting up Player 1";
+        core.playerHandler();
+    }
+    cin.sync();
 
 }
 
@@ -148,7 +238,9 @@ void initGame(){
                 if(1){
                     system("clear");
                     cout << "Entering into the game";
-//                    Court.gameHandler();
+                    showControls();
+                    this_thread::sleep_for(chrono::milliseconds(400));
+                    core.playerHandler();
                 }
                 else{
                     cout << "Server hasn't been set yet";
