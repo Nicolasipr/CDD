@@ -240,9 +240,3 @@ void Board::showBoard(int p1_pos, int p2_pos) {
     fflush(stdin);
 
 }
-void Board::gameHandler() {
-    do{
-        std::this_thread::sleep_for(std::chrono::milliseconds(getFPS()));
-
-    }while( getPlayerTwoScore() < 3 || getPlayerOneScore() < 3);
-}

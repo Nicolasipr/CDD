@@ -7,22 +7,28 @@
 
 #include "Game.h"
 
-//#include "Player.h"
-
 
 class Board : virtual public Game{
 
 private:
-    // Board limits
+
+/*
+ * BOARD MAP LIMITS/BORDERS
+ */
     const int width = 84;
     const int height = 20;
     const int scoreBoard = 4;
 
-////  Player One and Two Settings
+/*
+ *  PLAYRES PADDLE
+ */
     const char* playerOnePaddle = "123456";
     const char* playerTwoPaddle = "123456";
 
-//  Ball Settings
+
+    /*
+     * BALL SHAPE
+     */
     char pongBall = 'O';
 
 public:
@@ -30,7 +36,6 @@ public:
     ~Board();
 
     // Game itself
-    void gameHandler(); // handles data, ball movements and points
     void gameMenu(); // displays menu to show rules and display information about the game and creators
     void showBoard(int, int); // displays board: players, ball, points, and more.
 
