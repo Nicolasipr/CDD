@@ -5,10 +5,15 @@
 #include "includes/Game.h"
 
 #include <iostream>
+#include <chrono>
+#include <thread>
+#include "pthread.h"
+
+//kbhit
 #include <cstdio>
 #include <unistd.h>
 #include <termios.h>
-
+#include <fcntl.h>
 #include <random>
 // Server side implementation of UDP client-server model
 #include <stdlib.h>
@@ -24,6 +29,7 @@
 #define BUFFER_SIZE 1024
 #define MAX_CLIENTS 2
 #define esc 27
+static pthread_mutex_t mutex; // avoids threads interruption.
 
 using namespace std;
 
@@ -39,6 +45,9 @@ Game::~Game() {
 int Game::getFPS() {
     return FPS;
 }
+void Game::setFPS(int n_fps) {
+    FPS = n_fps;
+}
 
 bool Game::getServerStatus() {
     return serverStatus;
@@ -49,8 +58,9 @@ void Game::setServerStatus( bool n_status) {
 }
 
 /*
- *  Players
+ *  PLAYERS
  */
+
 int Game::getPlayers() {
     return players_count;
 }
@@ -84,6 +94,37 @@ void Game::setPlayerOneScore(int n_score) {
 void Game::setPlayerTwoScore(int n_score){
     playerTwoScore = n_score;
 }
+/*
+ *  BALL
+ */
+
+int Game::getBallXPos(){
+    return ballXPosition;
+}
+void Game::setBallXPos(int n_pos){
+    ballXPosition = n_pos;
+}
+
+int Game::getBallYPos(){
+    return ballYPosition;
+}
+void Game::setBallYPos(int n_pos){
+    ballYPosition = n_pos;
+}
+
+int Game::getBallXDir(){
+    return ballXDirection;
+}
+void Game::setBallXDir(int n_xDir){
+    ballXDirection = n_xDir;
+}
+
+int Game::getBallYDir(){
+    return ballYDirection;
+}
+void Game::setBallYDir(int n_yDir){
+    ballYDirection = n_yDir;
+}
 
 
 /*
@@ -92,6 +133,166 @@ void Game::setPlayerTwoScore(int n_score){
  *  encryption  -> Basic message encryption. Avoids easy cheating on game
  *  decryption  -> Basic decrypts message given
  */
+
+//           P1 HANDLING MESSAGE
+void *Game::rcvMessageHelper(void *p){
+    Game *a = (Game *)p; // cast *p to Game Class type
+
+    char buffer[BUFFER_SIZE],
+            resp[64];
+
+    while( a->getPlayerOneScore() < 3 && a->getPlayerTwoScore() < 3){
+
+        a->rcvMessage(buffer, resp);
+        a->sendMessageTo(a->p1Sock, a->p1Client, resp);
+//        a->sendMessageTo(a->p2Sock, a->p2Client, resp);
+//        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        p=a;
+
+    }
+//    cout << "\nHello From Server Receiver Handler Ending ";
+
+    return NULL;
+}
+
+char* Game::rcvMessage(char * buffer, char * resp) {
+//    pthread_mutex_lock(&mutex); //  keeps rcv Message under control
+
+    unsigned int len = sizeof(servaddr);
+
+    if ( recvfrom(sockfd, (char *)buffer, BUFFER_SIZE,
+                  0, ( struct sockaddr *) &p1Client,
+                  &len) < 0 ) {
+        perror("recvfrom");
+//        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+    else{
+        buffer[len] = '\0';
+
+        cout << "\n\n Message from Client Address: " << inet_ntoa(p1Client.sin_addr);
+        cout << "\nand sent from port: " << ntohs(p1Client.sin_port);
+        printf("\nClient : %s", buffer);
+        printf("\nClient decrypted : %s\n", decrypt(buffer, key) );
+        fflush(stdin);
+        cout << "Handled message :" << handlingMessage(buffer, resp);
+        cout << "\n Server :" << resp;
+        fflush(stdin);
+        printf("\nServer decrypted : %s", decrypt(resp, key) );
+    }
+
+//    pthread_mutex_unlock(&mutex);
+    return encryption(resp, key);
+}
+
+
+//      P2 HANDLING MESSAGE
+char* Game::rcvMessageP2(char * buffer, char * resp) {
+//    pthread_mutex_lock(&mutex); //  keeps rcv Message under control
+
+    unsigned int len = sizeof(servaddr);
+
+    if ( recvfrom(sockfd, (char *)buffer, BUFFER_SIZE,
+                  0, ( struct sockaddr *) &p2Client,
+             &len) < 0 ) {
+        perror("recvfrom");
+//        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+    else{
+        buffer[len] = '\0';
+
+        cout << "\n\n Message from Client Address: " << inet_ntoa(p2Client.sin_addr);
+        cout << "\nand sent from port: " << ntohs(p2Client.sin_port);
+        printf("\nClient : %s", buffer);
+        printf("\nClient decrypted : %s\n", decrypt(buffer, key) );
+        fflush(stdin);
+        cout << "Handled message :" << handlingMessage(buffer, resp);
+        cout << "\n Server :" << resp;
+        fflush(stdin);
+        cout << "\nServer decrypted :  " << decrypt(resp, key) << endl;
+//        printf("\nServer decrypted : %s", decrypt(resp, key) );
+        std::cout.flush();
+    }
+
+//    pthread_mutex_unlock(&mutex);
+    return encryption(resp, key);
+}
+void *Game::rcvMessageHelperP2(void *p){
+    Game *a = (Game *)p; // cast *p to Game Class type
+
+    char buffer[BUFFER_SIZE],
+            resp[64];
+
+    while( a->getPlayerOneScore() < 3 && a->getPlayerTwoScore() < 3){
+
+        a->rcvMessageP2(buffer, resp);
+//        a->sendMessageTo(a->p1Sock, a->p1Client, resp);
+        a->sendMessageTo(a->p2Sock, a->p2Client, resp);
+//        std::this_thread::sleep_for(std::chrono::milliseconds(166));
+        p=a;
+
+    }
+//    cout << "\nHello From Server Receiver Handler Ending ";
+
+    return NULL;
+}
+
+
+void *Game::sendMessageHelper(void *p){
+
+    Game *a = (Game *)p; // cast *p to Game Class type
+
+    char buffer[BUFFER_SIZE],
+            resp[64];
+
+    while(a->getPlayerOneScore() < 3 && a->getPlayerTwoScore() < 3){
+
+        a->handlingMessage(buffer, resp);
+        a->sendMessageTo(a->p1Sock, a->p1Client, resp);
+//        a->sendMessageTo(a->p2Sock, a->p2Client, resp);
+//        std::this_thread::sleep_for(std::chrono::milliseconds(166));
+
+        p=a;
+    }
+    return NULL;
+}
+void Game::sendMessageTo(int id_socket, struct sockaddr_in client, char * resp) {
+
+    if (  sendto(sockfd, (const char *)resp, strlen(resp),
+                 MSG_DONTWAIT, (const struct sockaddr *) &client,
+                    id_socket)< 0){
+        perror("sendto");
+//        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+    else{
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 6 ppm
+    }
+}
+int Game::kbhit(void){
+    fflush(stdin);
+    fflush(stdout);
+    struct termios oldt, newt;
+    int ch;
+    int oldf;
+
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);;
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+
+    ch = getchar();
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
+
+    if(ch != EOF){
+        ungetc(ch, stdin);
+        return 1;
+    }
+
+    return 0;
+}
 char Game::controlInput() {
     struct termios old_tio, new_tio;
     unsigned char c;
@@ -140,6 +341,25 @@ char Game::getRandomChar(){
     char c = static_cast<unsigned char>( distribution(generator) );
     return c;
 }
+
+
+void Game::setDifficulty(int n_difficulty) {
+    switch(n_difficulty){
+        case 1:
+            setFPS(200); // easy
+            break;
+        case 2:
+            setFPS(50); // Medium
+            break;
+        case 3:
+            setFPS(20); // Hard
+            break;
+        case 4:
+            setFPS(5); // Progressive(?
+            break;
+    }
+}
+
 char* Game::handlingMessage(char * msg, char * resp) {
 
     if( msg[0] == '?' || msg[1] == '?') {
@@ -149,6 +369,20 @@ char* Game::handlingMessage(char * msg, char * resp) {
         resp[2] = '+';
         resp[3] = gameMode + '0';
         resp[4] = '\0';
+        if(getPlayers() == 1){
+            memset(&p1Client, 0, sizeof(p1Client));
+            p1Client.sin_family = cliaddr.sin_family;
+            p1Client.sin_addr.s_addr = cliaddr.sin_addr.s_addr;
+            p1Client.sin_port = cliaddr.sin_port;
+            p1Sock = sizeof(p1Client);
+        }
+        if( getPlayers() == 2){
+            memset(&p2Client, 0, sizeof(p2Client));
+            p2Client.sin_family = cliaddr.sin_family;
+            p2Client.sin_addr.s_addr = cliaddr.sin_addr.s_addr;
+            p2Client.sin_port = cliaddr.sin_port;
+            p2Sock = sizeof(p2Client);
+        }
 
         return encryption(resp, key);
     }
@@ -171,31 +405,256 @@ char* Game::handlingMessage(char * msg, char * resp) {
                 if(playerTwoPos <= height + scoreBoard - 7)
                     playerTwoPos++;
         }
+    }
         resp[0] = '!';
         if(playerOnePos >= 10){
             resp[1] = getPlayerOneYPos()/10 + '0';
             resp[2] = getPlayerOneYPos()%10 + '0';
             resp[3] = '+';
+
             if(playerTwoPos >= 10){
                 resp[4] =  getPlayerTwoYPos()/10 + '0';
                 resp[5] =  getPlayerTwoYPos()%10 + '0';
+                resp[6] = '+';
+
+                if( ballXPosition >= 10){
+                    resp[7] = getBallXPos()/10 + '0';
+                    resp[8] = getBallXPos()%10 + '0';
+                    resp[9] = '+';
+                    if(ballYPosition >= 10) {
+                        resp[10] = getBallYPos()/10 + '0';
+                        resp[11] = getBallYPos()%10 + '0';
+                        resp[12] = '+';
+                        resp[13] = getPlayerOneScore() + '0';
+                        resp[14] = '+';
+                        resp[15] = getPlayerTwoScore() + '0';
+                        resp[16] = '+';
+                        resp[17] = '\0';
+
+                    }
+                    else{
+                        resp[10] = getBallYPos() + '0';
+                        resp[11] = '+';
+                        resp[12] = getPlayerOneScore() + '0';
+                        resp[13] = '+';
+                        resp[14] = getPlayerTwoScore() + '0';
+                        resp[15] = '+';
+                        resp[16] = '\0';
+
+                    }
+                    cout << "\nRESP : " << resp << endl;
+                    return encryption(resp, key);
+                }
+                else{
+                    resp[7] = getBallXPos() + '0';
+                    resp[8] = '+';
+                    if(ballYPosition >= 10) {
+                        resp[9] = getBallYPos()/10 + '0';
+                        resp[10] = getBallYPos()%10 + '0';
+                        resp[11] = '+';
+                        resp[12] = getPlayerOneScore();
+                        resp[13] = '+';
+                        resp[14] = getPlayerTwoScore();
+                        resp[15] = '+';
+                        resp[16] = '\0';
+
+                    }
+                    else{
+                        resp[9] = getBallYPos() + '0';
+                        resp[10] = '+';
+                        resp[11] = getPlayerOneScore() + '0';
+                        resp[12] = '+';
+                        resp[13] = getPlayerTwoScore() + '0';
+                        resp[14] = '+';
+                        resp[15] = '\0';
+                    }
+                    cout << "\nRESP : " << resp << endl;
+                    return encryption(resp, key);
+                }
             }
-            else
-                resp[4] = getPlayerTwoYPos() + '0';
+            else{
+                resp[4] =  getPlayerTwoYPos() + '0';
+                resp[5] = '+';
+
+                if( ballXPosition >= 10){
+                    resp[6] = getBallXPos()/10 + '0';
+                    resp[7] = getBallXPos()%10 + '0';
+                    resp[8] = '+';
+                    if(ballYPosition >= 10) {
+                        resp[9] = getBallYPos()/10 + '0';
+                        resp[10] = getBallYPos()%10 + '0';
+                        resp[11] = '+';
+                        resp[12] = getPlayerOneScore() + '0';
+                        resp[13] = '+';
+                        resp[14] = getPlayerTwoScore() + '0';
+                        resp[15] = '+';
+                        resp[16] = '\0';
+
+                    }
+                    else{
+                        resp[9] = getBallYPos() + '0';
+                        resp[10] = '+';
+                        resp[11] = getPlayerOneScore() + '0';
+                        resp[12] = '+';
+                        resp[13] = getPlayerTwoScore() + '0';
+                        resp[14] = '+';
+                        resp[15] = '\0';
+
+                    }
+                    cout << "\nRESP : " << resp << endl;
+                    return encryption(resp, key);
+                }
+                else{
+                    resp[7] = getBallXPos() + '0';
+                    resp[8] = '+';
+                    if(ballYPosition >= 10) {
+                        resp[9] = getBallYPos()/10 + '0';
+                        resp[10] = getBallYPos()%10 + '0';
+                        resp[11] = '+';
+                        resp[12] = getPlayerOneScore();
+                        resp[13] = '+';
+                        resp[14] = getPlayerTwoScore();
+                        resp[15] = '+';
+                        resp[16] = '\0';
+
+                    }
+                    else{
+                        resp[9] = getBallYPos() + '0';
+                        resp[10] = '+';
+                        resp[11] = getPlayerOneScore() + '0';
+                        resp[12] = '+';
+                        resp[13] = getPlayerTwoScore() + '0';
+                        resp[14] = '+';
+                        resp[15] = '\0';
+                    }
+                    cout << "\nRESP : " << resp << endl;
+                    return encryption(resp, key);
+                }
+            }
         }
         else {
-            resp[1] =  getPlayerOneYPos() + '0';
+            resp[1] = getPlayerOneYPos() + '0';
             resp[2] = '+';
-            resp[3] =  getPlayerTwoYPos() + '0';
+            if(playerTwoPos >= 10){
+                resp[3] =  getPlayerTwoYPos()/10 + '0';
+                resp[4] =  getPlayerTwoYPos()%10 + '0';
+                resp[5] = '+';
 
+                if( ballXPosition >= 10){
+                    resp[6] = getBallXPos()/10 + '0';
+                    resp[7] = getBallXPos()%10 + '0';
+                    resp[8] = '+';
+                    if(ballYPosition >= 10) {
+                        resp[9] = getBallYPos()/10 + '0';
+                        resp[10] = getBallYPos()%10 + '0';
+                        resp[11] = '+';
+                        resp[12] = getPlayerOneScore() + '0';
+                        resp[13] = '+';
+                        resp[14] = getPlayerTwoScore() + '0';
+                        resp[15] = '+';
+                        resp[16] = '\0';
+
+                    }
+                    else{
+                        resp[9] = getBallYPos() + '0';
+                        resp[10] = '+';
+                        resp[11] = getPlayerOneScore() + '0';
+                        resp[12] = '+';
+                        resp[13] = getPlayerTwoScore() + '0';
+                        resp[14] = '+';
+                        resp[15] = '\0';
+
+                    }
+                    cout << "\nRESP : " << resp << endl;
+                    return encryption(resp, key);
+                }
+                else{
+                    resp[6] = getBallXPos() + '0';
+                    resp[7] = '+';
+                    if(ballYPosition >= 10) {
+                        resp[8] = getBallYPos()/10 + '0';
+                        resp[9] = getBallYPos()%10 + '0';
+                        resp[10] = '+';
+                        resp[11] = getPlayerOneScore() + '0';
+                        resp[12] = '+';
+                        resp[13] = getPlayerTwoScore() + '0';
+                        resp[14] = '+';
+                        resp[15] = '\0';
+
+                    }
+                    else{
+                        resp[8] = getBallYPos() + '0';
+                        resp[9] = '+';
+                        resp[10] = getPlayerOneScore() + '0';
+                        resp[11] = '+';
+                        resp[12] = getPlayerTwoScore() + '0';
+                        resp[13] = '+';
+                        resp[14] = '\0';
+                    }
+                    cout << "\nRESP : " << resp << endl;
+                    return encryption(resp, key);
+                }
+            }
+            else{
+                resp[4] =  getPlayerTwoYPos() + '0';
+                resp[5] = '+';
+
+                if( ballXPosition >= 10){
+                    resp[6] = getBallXPos()/10 + '0';
+                    resp[7] = getBallXPos()%10 + '0';
+                    resp[8] = '+';
+                    if(ballYPosition >= 10) {
+                        resp[9] = getBallYPos()/10 + '0';
+                        resp[10] = getBallYPos()%10 + '0';
+                        resp[11] = '+';
+                        resp[12] = getPlayerOneScore();
+                        resp[13] = '+';
+                        resp[14] = getPlayerTwoScore();
+                        resp[15] = '+';
+                        resp[16] = '\0';
+
+                    }
+                    else{
+                        resp[9] = getBallYPos() + '0';
+                        resp[10] = '+';
+                        resp[11] = getPlayerOneScore();
+                        resp[12] = '+';
+                        resp[13] = getPlayerTwoScore();
+                        resp[14] = '+';
+                        resp[15] = '\0';
+
+                    }
+                    cout << "\nRESP : " << resp << endl;
+                    return encryption(resp, key);
+                }
+                else{
+                    resp[7] = getBallXPos() + '0';
+                    resp[8] = '+';
+                    if(ballYPosition >= 10) {
+                        resp[9] = getBallYPos()/10 + '0';
+                        resp[10] = getBallYPos()%10 + '0';
+                        resp[11] = '+';
+                        resp[12] = getPlayerOneScore();
+                        resp[13] = '+';
+                        resp[14] = getPlayerTwoScore();
+                        resp[15] = '+';
+                        resp[16] = '\0';
+
+                    }
+                    else{
+                        resp[9] = getBallYPos() + '0';
+                        resp[10] = '+';
+                        resp[11] = getPlayerOneScore();
+                        resp[12] = '+';
+                        resp[13] = getPlayerTwoScore();
+                        resp[14] = '+';
+                        resp[15] = '\0';
+                    }
+                    cout << "\nRESP : " << resp << endl;
+                    return encryption(resp, key);
+                }
+            }
         }
-
-//        cout << "resp : " << resp;
-    }
-    else
-        return encryption(msg, key);
-    return encryption(resp, key);
-
 }
 /*
  *
@@ -206,10 +665,121 @@ int Game::getPort(){
 char * Game::getAddress() {
     return (char *) serverAddress;
 }
-void Game::setServer() {
+void Game::setServerTCP() {
 
-        int sockfd, ret;
-        struct sockaddr_in servaddr, cliaddr;
+
+    int sockfd, ret;
+
+
+    int newSocket;
+    struct sockaddr_in cliaddr;
+
+
+    char buffer[BUFFER_SIZE],
+            resp[32];
+
+    pid_t childpid;
+    hostent * record = gethostbyname(getAddress());
+
+    if(record == NULL){
+        cout <<"\n" << getAddress() <<" is unavailable";
+        exit(1);
+    }
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if(sockfd < 0){
+        printf("[-]Error in connection.\n");
+        exit(1);
+    }
+    printf("[+]Server Socket is created.\n");
+
+    int option = 1;
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
+
+    memset(&servaddr, '\0', sizeof(servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons(PORT);
+    memcpy(&servaddr.sin_addr, record->h_addr_list[0], record->h_length);
+//    servaddr.sin_addr.s_addr = inet_addr(getAddress());
+
+    ret = bind(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr));
+    if(ret < 0){
+        printf("[-]Error in binding.\n");
+        exit(1);
+    }
+    printf("[+]Bind to port %d\n", PORT);
+
+    if(listen(sockfd, 10) == 0){
+        printf("[+]Listening....\n");
+    }else{
+        printf("[-]Error in binding.\n");
+    }
+
+    socklen_t addr_size = sizeof(cliaddr);
+    while(1){
+        while(getPlayers() < 2){
+            newSocket = accept(sockfd, (struct sockaddr*)&cliaddr, &addr_size);
+            if(newSocket < 0){
+                exit(1);
+            }
+            else{
+                setPlayers();
+                if(getPlayers() == 1){
+                    memset(&p1Client, 0, sizeof(p1Client));
+                    p1Client.sin_family = cliaddr.sin_family;
+                    p1Client.sin_addr.s_addr = cliaddr.sin_addr.s_addr;
+                    p1Client.sin_port = cliaddr.sin_port;
+                    p1Sock = newSocket;
+                }
+                if( getPlayers() == 2){
+                    memset(&p2Client, 0, sizeof(p2Client));
+                    p2Client.sin_family = cliaddr.sin_family;
+                    p2Client.sin_addr.s_addr = cliaddr.sin_addr.s_addr;
+                    p2Client.sin_port = cliaddr.sin_port;
+                    p2Sock = newSocket;
+                }
+
+            }
+        }
+
+
+        printf("Connection accepted from %s:%d\n", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
+
+        if((childpid = fork()) == 0){
+            close(sockfd);
+
+            while(1){
+                recv(newSocket, buffer, BUFFER_SIZE, 0);
+                if(strcmp(buffer, ":exit") == 0){
+                    printf("Disconnected from %s:%d\n", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
+                    break;
+                }else{
+                    cout << "\n\nMessage sent from socket: " << cliaddr.sin_port;
+                    cout << "\n and from Client Address: " << cliaddr.sin_addr.s_addr;
+                    cout << "\n through: " << cliaddr.sin_family;
+                    printf("\nClient : %s", buffer);
+                    printf("\nClient decrypted : %s", decrypt(buffer, key) );
+                    fflush(stdin);
+                    cout << "\nHandled message :" << handlingMessage(buffer, resp);
+                    cout << "\nServer :" << resp;
+                    fflush(stdin);
+                    printf("\nServer decrypted : %s", decrypt(resp, key) );
+                    encryption(resp, key);
+
+                    send(p1Sock, resp, strlen(resp), 0);
+                    send(p2Sock, resp, strlen(resp), 0);
+                    bzero(buffer, sizeof(buffer));
+                    bzero(resp, sizeof(resp));
+                }
+            }
+        }
+
+    }
+
+    close(newSocket);
+    return ;
+}
+void Game::setServerUDP() {
+
 
     // checks address ip
         hostent * record = gethostbyname(getAddress());
@@ -228,9 +798,11 @@ void Game::setServer() {
 
         memset(&servaddr, 0, sizeof(servaddr));
         memset(&cliaddr, 0, sizeof(cliaddr));
+
         // Filling server information
         servaddr.sin_family = AF_INET; // IPv4
-        servaddr.sin_addr.s_addr = INADDR_ANY;
+        memcpy(&servaddr.sin_addr, record->h_addr_list[0], record->h_length);
+//        servaddr.sin_addr.s_addr = INADDR_ANY;
         servaddr.sin_port = htons(PORT);
 
         // Bind the socket with the server address
@@ -239,55 +811,142 @@ void Game::setServer() {
             perror("bind failed");
             exit(EXIT_FAILURE);
         }
-//        if(listen(sockfd, 3) == 0){
-//            cout << "Listening....\n";
-//        }
-//        else {
-//            cout << "Error in binding.\n";
-//        }
 
         unsigned int len;
         len = sizeof(servaddr);
 
-//        serverStatus = true;
 
         system("clear");
 
         char buffer[BUFFER_SIZE],
-            resp[BUFFER_SIZE];
+            resp[32];
+        int n;
+        unsigned int  m = sizeof(n);
+        getsockopt(sockfd,SOL_SOCKET,SO_RCVBUF,(void *)&n, &m);
+        cout << "\nSocket size = " << n << endl;
 
-        cout << "Server is running on: "
-              << "\n\tAddress : " << getAddress()
-              << "\n\t\t: " << ip_address
-              << "\n\tPort    : " << getPort()
-              << "\n\tSpeed   : " << getFPS()
-              << "\nLogs here: \n\n";
+    cout << "Server is running on: "
+         << "\n\tAddress : " << getAddress()
+         << "\n\t\t: " << ip_address
+         << "\n\t\t: " << inet_ntoa(servaddr.sin_addr)
+         << "\n\tPort    : " << getPort()
+         << "\n\tPort    : " << ntohs(servaddr.sin_port)
+         << "\n\tSpeed   : " << getFPS()
+         << "\nLogs here: \n\n";
+    int lennn, trysize, gotsize, err;
+    lennn = sizeof(int);
+    trysize = 1048576+32768;
+    do {
+        trysize -= 32768;
+        setsockopt(sockfd,SOL_SOCKET,SO_SNDBUF,(char*)&trysize,lennn);
+        err = getsockopt(sockfd,SOL_SOCKET,SO_SNDBUF,(char*)&gotsize,(socklen_t*)&lennn);
+        if (err < 0) { perror("getsockopt"); break; }
+    } while (gotsize < trysize);
+    printf("Size set to %d\n",gotsize);
 
-    while(1){
+    trysize = 1048576+32768;
+    gotsize = 0;
+    do {
+        trysize -= 32768;
+        setsockopt(sockfd,SOL_SOCKET,SO_RCVBUF,(char*)&trysize,lennn);
+        err = getsockopt(sockfd,SOL_SOCKET,SO_RCVBUF,(char*)&gotsize,(socklen_t*)&lennn);
+        if (err < 0) { perror("getsockopt"); break; }
+    } while (gotsize < trysize);
+    printf("Size set to %d\n",gotsize);
+
+        while(getPlayers() < 2){
+            cout << "\n\n Waiting for Players, Total in server: " << getPlayers();
 
             recvfrom(sockfd, (char *)buffer, BUFFER_SIZE,
-                     MSG_WAITALL, ( struct sockaddr *) &cliaddr,
-                     &len);
+                    0, ( struct sockaddr *) &cliaddr,
+                    &len);
 
             buffer[len] = '\0';
-
-            printf("\n\nClient : %s", buffer);
-            printf("Client decrypted : %s\n", decrypt(buffer, key) );
+            cout << "\n\nMessage sent from socket: " << ntohs(cliaddr.sin_port);
+            cout << "\n and from Client Address: " << inet_ntoa(cliaddr.sin_addr);
+            printf("\nClient : %s", buffer);
+            printf("\nClient decrypted : %s\n", decrypt(buffer, key) );
             fflush(stdin);
             cout << "Handled message :" << handlingMessage(buffer, resp);
-            cout << "\n Server :" << resp;
+            cout << "\nServer :" << resp;
             fflush(stdin);
             printf("\nServer : %s", resp);
             fflush(stdin);
             printf("\nServer decrypted : %s", decrypt(resp, key) );
-                encryption(resp, key);
-            cout << "\nP1 POS : "  << getPlayerOneYPos();
-            cout << "\nP2 POS : "  << getPlayerTwoYPos();
+            encryption(resp, key);
+
             fflush(stdin);
             sendto(sockfd, (const char *)resp, strlen(resp),
-                   MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
+                   0, (const struct sockaddr *) &cliaddr,
                    len);
-
         }
+
+        if(getPlayers() == 2){
+            char ready[16] = {']', 's','t','a','r','t', '\0'};
+            encryption(ready, key);
+            cout << "\n\nServer :" << ready;
+            fflush(stdin);
+            printf("\nServer : %s", ready);
+            fflush(stdin);
+            printf("\nServer decrypted : %s", decrypt(ready, key) );
+            encryption(ready, key);
+
+            sendto(sockfd, (const char *)ready, strlen(ready),
+                   0, (const struct sockaddr *) &p1Client,
+                   p1Sock);
+            sendto(sockfd, (const char *)ready, strlen(ready),
+                   0, (const struct sockaddr *) &p2Client,
+                   p2Sock);
+        }
+
+
+
+
+
+//    while(1){
+//            fflush(NULL);
+//            fflush(stdin);
+//            fflush(stdout);
+////            std::thread receiving (rcvMessage, buffer, len);
+////            receiving.join();
+////            rcvMessage(buffer, len);
+//
+////            recvfrom(sockfd, (char *)buffer, BUFFER_SIZE,
+////                     MSG_DONTWAIT, ( struct sockaddr *) &cliaddr,
+////                     &len);
+//
+//            buffer[len] = '\0';
+//
+//            cout << "\n\n Message from Client Address: " << inet_ntoa(cliaddr.sin_addr);
+//            cout << "\nand sent from port: " << ntohs(cliaddr.sin_port);
+//            printf("\nClient : %s", buffer);
+//            printf("\nClient decrypted : %s\n", decrypt(buffer, key) );
+//            fflush(stdin);
+//            cout << "Handled message :" << handlingMessage(buffer, resp);
+//            cout << "\n Server :" << resp;
+//            fflush(stdin);
+//            printf("\nServer decrypted : %s", decrypt(resp, key) );
+//                encryption(resp, key);
+//
+//            fflush(NULL);
+//            fflush(stdin);
+//            fflush(stdout);
+////            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+////            std::thread th1 (sendMessageTo, p1Sock, &p1Client, resp);
+////            th1.join();
+//
+//            sendto(sockfd, (const char *)resp, strlen(resp),
+//                   0, (const struct sockaddr *) &p1Client,
+//                   p1Sock);
+//            fflush(NULL);
+//            fflush(stdin);
+//            fflush(stdout);
+//            sendto(sockfd, (const char *)resp, strlen(resp),
+//               0, (const struct sockaddr *) &p2Client,
+//               p2Sock);
+////            sendMessageTo(p2Sock, &p2Client, resp);
+////            std::thread th2 (sendMessageTo, p2Sock, &p2Client, resp);
+////            th2.join();
+//        }
 
 }
