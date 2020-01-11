@@ -177,13 +177,6 @@ void Game::setBallYDir(int n_yDir){
 }
 
 
-/*
- *  TOOLS
- *  control Input -> It handles unbuffered pressed keyboard from terminal.
- *  encryption  -> Basic message encryption. Avoids easy cheating on game
- *  decryption  -> Basic decrypts message given
- */
-
 
 /*
  *  P1 THREAD FOR RECEIVING DATA AND SEND IT BACK
@@ -206,6 +199,7 @@ void *Game::rcvMessageHelper(void *p){
         p=a; // updates back our class if necessary.
 
     }
+    pthread_exit(NULL);
     free(a);
     delete(a);
     return NULL;
@@ -285,7 +279,7 @@ void *Game::rcvMessageHelperP2(void *p){
         p=a;
 
     }
-
+    pthread_exit(NULL);
     free(a);
     delete(a);
     return NULL;

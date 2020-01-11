@@ -7,8 +7,6 @@
 #include <netinet/in.h> // socket struct
 
 
-//class Board;
-
 class Game {
 
 private:
