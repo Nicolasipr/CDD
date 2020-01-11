@@ -22,9 +22,10 @@ Core core;
 void showControls(){
     system("clear");
     cout << "\n\n\t\t Players Controls " << endl
-        << "\tPLayer 1\t\tPlayer 2" << endl
-        << "UP KEY = w\t\t UP KEY = i" << endl
-        << "DOWN KEY = s\t\tDOWN KEY = k" << endl;
+        << "\t  PLayer 1  \t|\t  Player 2" << endl
+        << "\tUP KEY   = w\t|\t UP KEY   = i" << endl
+        << "\tDOWN KEY = s\t|\t DOWN KEY = k" << endl;
+    this_thread::sleep_for(chrono::milliseconds(2000));
 }
 void setAddressHelper(){
     cout << "Input your new Address : " ;
@@ -176,8 +177,6 @@ void playerOptions(){
          << "\n\tAddress: " << core.getAddress() << endl
          << "\tPort : " << core.getPort() << endl
          << "\tGame Mode: " << core.getFPS() << endl
-         //                     << "\tPLayer UP key :" << core.p1UpKey << endl
-         //                     << "\tPLayer DOWN key :" << core.p1DownKey << endl
          << "\n\n Are you sure to continue with current setting?" << endl
          << "\n\t\t Y | N " << endl;
 
@@ -239,11 +238,9 @@ void initGame(){
                     system("clear");
                     cout << "Entering into the game";
                     showControls();
-                    this_thread::sleep_for(chrono::milliseconds(400));
                     core.playerHandler();
                 }
                 else{
-                    cout << "Server hasn't been set yet";
                 }
 
                 break;
