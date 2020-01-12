@@ -52,9 +52,6 @@ void Core::serverHandler() {
         ballHandler( Server.getPlayerOneYPos(), Server.getPlayerTwoYPos() );
         Server.setBallXPos( getBallXPos() );
         Server.setBallYPos( getBallYPos() );
-
-        cout << "Core P1: " << getPlayerOneScore() << endl;
-        cout << "Core P2: " << getPlayerTwoScore() << endl;
         Server.setPlayerOneScore( getPlayerOneScore());
         Server.setPlayerTwoScore( getPlayerTwoScore());
         std::this_thread::sleep_for(std::chrono::milliseconds(getFPS()));
@@ -112,11 +109,6 @@ void Core::playerHandler() {
 
         ballHandler( Client.getPlayerOneYPos(), Client.getPlayerTwoYPos() );
         showBoard( Client.getPlayerOneYPos(), Client.getPlayerTwoYPos() );
-
-    cout << "Client P1: " << Client.getPlayerOneScore() << endl;
-    cout << "Client P2: " << Client.getPlayerTwoScore() << endl;
-        cout << "Core P1: " << getPlayerOneScore() << endl;
-        cout << "Core P2: " << getPlayerTwoScore() << endl;
 
 
         std::cout.flush();
